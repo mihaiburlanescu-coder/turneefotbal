@@ -518,7 +518,7 @@ window.addEventListener('hashchange',function(){var h=location.hash.replace('#',
 
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKwenB_brCKF7l44';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKKwenB_brCKF7l44';
 var subs={};
 function denied(){var x=new Error('Doar organizatorul poate modifica datele.');x.code='invalid_argument';return x}
 function dberr(e){var m=(e&&e.message)||'Eroare de rețea';var x=new Error(m);x.code=(e&&(e.code==='42501'||/row-level security|permission denied/i.test(m)))?'invalid_argument':'unavailable';return x}
