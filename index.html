@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Turnee Fotbal</title>
 <meta name="description" content="Turnee de fotbal pentru copii: înscrierea școlilor, program, scoruri și clasament live.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%231b6b44'/%3E%3Cpath d='M50 28l18 13-7 21H39l-7-21z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="fonts.css">
 <style>
 html{color-scheme:light}body{margin:0;font-size:14px;font-family:system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}
@@ -32,6 +32,7 @@ h3{font-size:19px;line-height:1.15}
 .wrap{max-width:1000px;margin:0 auto}
 .hdr{padding:22px 0 14px;border-bottom:2px solid var(--ink);position:relative}
 .hdr::after{content:"";position:absolute;left:0;bottom:-8px;width:100%;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:14px;align-items:center}.logo{flex:none;height:auto;width:56px}@media (max-width:480px){.logo{width:44px}}
 .hdr h1{font-size:clamp(34px,7vw,52px);line-height:.95;text-transform:uppercase}
 .hdr .sub{color:var(--muted);margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 16px}
 .tabs{display:flex;gap:6px;margin:22px 0 18px;flex-wrap:wrap}
@@ -593,7 +594,7 @@ function render(force){
   pendingRender=false;
   if(tab==='inscriere')syncDraft();if(tab==='amicale'&&atab==='inscrie')syncFr();
   var c=cfg();
-  var o='<header class="hdr"><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></header>';
+  var o='<header class="hdr"><div class="brand"><img class="logo" src="logo.svg" alt="" width="56" height="65"><div><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></div></div></header>';
   var tabs=[['live','Live: scoruri și clasament'],['inscriere','Înscriere școală'],['amicale','Amicale'],['regulament','Regulament']];if(canEdit)tabs.unshift(['organizator','Organizator']);else tabs.push(['login','Organizator']);if(noDb)tabs=[['regulament','Regulament']];
   if(!tabs.some(function(t){return t[0]===tab}))tab=tabs[0][0];
   o+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</nav>';
