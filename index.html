@@ -247,7 +247,7 @@ var RULES=function(){return ['Fiecare echipă joacă doar în categoria pentru c
 function mcard(m,hl){var h=resolve(m.home),a=resolve(m.away),live=m.st==='live',fin=m.st==='fin';
   var pens=(m.stage==='K'&&fin&&+m.hs===+m.as&&m.hp!=null&&m.hp!=='')?'<div class="pens">la lovituri de departajare '+m.hp+'–'+m.ap+'</div>':'';
   return '<div class="match'+(live?' is-live':'')+'"><div class="mmeta"><span class="time">'+esc(m.time||'')+'</span><span>Teren '+esc(m.field)+'</span><span class="tag">'+esc(m.cat)+'</span><span>'+esc(m.rd)+'</span><span>M'+esc(m.no)+'</span>'+(m.refName?'<span>Arbitru: '+esc(m.refName)+'</span>':'')+(live?'<span class="livetag">LIVE</span>':'')+'</div>'+
-  '<div class="mteams"><div class="tm'+(h&&h===hl?' me':'')+'">'+tn(m.home)+'</div><div class="score">'+((fin||live)?esc(m.hs)+'<i>–</i>'+esc(m.as):'<span class="vs">vs</span>')+'</div><div class="tm right'+(a&&a===hl?' me':'')+'">'+tn(m.away)+'</div></div>'+pens+'</div>'}
+  '<div class="mteams"><div class="tm'+(h&&h===hl?' me':'')+'">'+tn(m.home)+'</div><div class="score">'+((fin||live)?esc(m.hs)+'<i>–</i>'+esc(m.as):'<span class="vs">vs</span>')+'</div><div class="tm right'+(a&&a===hl?' me':'')+'">'+tn(m.away)+'</div></div>'+pens+(m.mvp?'<div class="pens">★ Jucătorul meciului: '+mvpTxt(m.mvp)+'</div>':'')+'</div>'}
 var sortM=function(a,b){return String(a.time).localeCompare(String(b.time))||a.field-b.field};
 function standTable(G,hl){var q=+cfg().qualify;var rows=standings(G.ids,G.ms);
   return '<div class="card"><h3>Grupa '+esc(G.letter)+'</h3><div class="tblw"><table><thead><tr><th>#</th><th class="t">Echipa</th><th>J</th><th>V</th><th>E</th><th>Î</th><th>GM–GP</th><th>Pct</th></tr></thead><tbody>'+
@@ -277,7 +277,7 @@ function teamBlock(id,detail){var t=T()[id];if(!t)return '';
 /* ---------- vizualizări ---------- */
 function vLive(){var id=teamSel();var c=cats();if(!pcat||c.indexOf(pcat)<0)pcat=c[0]||'';
   var live=S.matches.filter(function(m){return m.st==='live'}).sort(sortM);
-  var o='<h2 style="margin-bottom:12px">Live: scoruri și clasament</h2>';
+  var o=vMvpPublic()+'<h2 style="margin-bottom:12px">Live: scoruri și clasament</h2>';
   if(!S.matches.length)o+='<div class="empty" style="margin-bottom:16px">Programul nu este încă publicat. Revino după ce organizatorul generează grupele.</div>';
   o+='<div class="card">'+teamPicker()+'<div class="small muted" style="margin-top:8px">Alegerea rămâne salvată pe acest telefon.</div></div>';
   if(live.length)o+='<div class="card"><h3>Acum pe teren</h3>'+live.map(function(m){return mcard(m,id)}).join('')+'</div>';
@@ -313,7 +313,7 @@ function regText(d){var t=['ÎNSCRIERE '+cfg().name,'Școala: '+d.school,'Locali
   d.teams.forEach(function(x,i){t.push('Echipa '+(i+1)+': '+x.cat+(x.suf?' '+x.suf:''));x.players.forEach(function(p){t.push('  '+p.n+', '+p.y)})});t.push('','Declar că am citit și accept regulamentul turneului.');return t.join('\n')}
 function vInscriere(){var c=cfg(),o='<h2 style="margin-bottom:12px">Devino membru</h2>'+subBanner();
   if(myReg&&myReg.status==='aprobata')
-    return o+'<div class="card"><h3>'+esc(myReg.school)+' <span class="chip good">înscriere aprobată</span></h3><div class="list">'+(myReg.teams||[]).map(function(t){return '<div class="item"><div class="nm">'+esc(myReg.school+(t.suf?' '+t.suf:''))+'</div><div>'+esc(t.cat)+'</div><div class="small muted">'+(t.players||[]).length+' jucători în lot</div></div>'}).join('')+'</div><p class="small muted" style="margin-bottom:0">Pentru modificări, contactează organizatorul.'+(c.contact?' '+esc(c.contact):'')+'</p></div>'+revCard()+liveFooter();
+    return o+'<div class="card"><h3>'+esc(myReg.school)+' <span class="chip good">înscriere aprobată</span></h3><div class="list">'+(myReg.teams||[]).map(function(t){return '<div class="item"><div class="nm">'+esc(myReg.school+(t.suf?' '+t.suf:''))+'</div><div>'+esc(t.cat)+'</div><div class="small muted">'+(t.players||[]).length+' jucători în lot</div></div>'}).join('')+'</div><p class="small muted" style="margin-bottom:0">Pentru modificări, contactează organizatorul.'+(c.contact?' '+esc(c.contact):'')+'</p></div>'+revCard()+mvpCard(myReg.school)+liveFooter();
   if(!regDraft)resetDraft();var d=regDraft;
   o+='<div class="card"><p style="margin:0">Completează formularul, iar cererea ajunge la organizator, care o aprobă. Numele și anul nașterii jucătorilor sunt vizibile doar organizatorului. Starea cererii o vezi aici, pe acest dispozitiv.</p>'+(c.fee?'<p style="margin:10px 0 0"><b>Taxă de participare:</b> '+esc(c.fee)+'</p>':'')+
     (myReg&&myReg.status==='noua'?'<p style="margin:10px 0 0"><span class="chip warn">în așteptare</span> Cererea ta a fost trimisă. Poți modifica formularul și o poți retrimite.</p>':'')+
@@ -364,8 +364,8 @@ function vRegulament(){var c=cfg(),o='<h2 style="margin-bottom:12px">Regulamentu
   if(noDb)o+='<div class="card"><p style="margin:0">Datele turneului nu s-au putut încărca. Reîncarcă pagina sau încearcă din nou peste câteva minute.</p></div>';
   if(c.regText)return o+'<div class="card"><div style="white-space:pre-wrap">'+esc(c.regText)+'</div></div>';
   return o+regArticles().map(function(a,i){return '<div class="card"><h3>Art. '+(i+1)+'. '+esc(a[0])+'</h3><div style="white-space:pre-wrap">'+esc(a[1])+'</div></div>'}).join('')+(c.contact?'<div class="card"><h3>Contact organizator</h3><div>'+esc(c.contact)+'</div></div>':'')}
-function vOrg(){var np=regs.filter(function(r){return r.status==='noua'}).length;var tabs=[['inscrieri','Înscrieri'+(np?' ('+np+')':'')],['scoli','Școli și invitații'],['turneu','Turneu'],['echipe','Echipe'],['program','Program și scoruri'],['amicale','Amicale'+(frRegs.some(function(r){return r.week===frWeek()&&r.status==='activa'})?' ('+frRegs.filter(function(r){return r.week===frWeek()&&r.status==='activa'}).length+')':'')],['arbitri','Arbitri'],['stele','Stele și review-uri'],['admin','Administrare']];
-  return '<div class="bar" style="justify-content:space-between;margin:0 0 12px"><h2>Panou administrator</h2><button class="btn ghost sm" data-act="logout">Deconectare</button></div><div class="sub-tabs" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-otab="'+t[0]+'" aria-selected="'+(otab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'+({inscrieri:oInscrieri,scoli:oScoli,turneu:oTurneu,echipe:oEchipe,program:oProgram,amicale:oAmicale,arbitri:oArbitri,stele:oStele,admin:oAdmin}[otab])()}
+function vOrg(){var np=regs.filter(function(r){return r.status==='noua'}).length;var tabs=[['inscrieri','Înscrieri'+(np?' ('+np+')':'')],['scoli','Școli și invitații'],['turneu','Turneu'],['echipe','Echipe'],['program','Program și scoruri'],['amicale','Amicale'+(frRegs.some(function(r){return r.week===frWeek()&&r.status==='activa'})?' ('+frRegs.filter(function(r){return r.week===frWeek()&&r.status==='activa'}).length+')':'')],['arbitri','Arbitri'],['stele','Stele și review-uri'],['mvp','Cel mai bun jucător'],['admin','Administrare']];
+  return '<div class="bar" style="justify-content:space-between;margin:0 0 12px"><h2>Panou administrator</h2><button class="btn ghost sm" data-act="logout">Deconectare</button></div><div class="sub-tabs" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-otab="'+t[0]+'" aria-selected="'+(otab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'+({inscrieri:oInscrieri,scoli:oScoli,turneu:oTurneu,echipe:oEchipe,program:oProgram,amicale:oAmicale,arbitri:oArbitri,stele:oStele,mvp:oMvp,admin:oAdmin}[otab])()}
 
 function schoolStatus(s){var n=S.teams.filter(function(t){return t.school===s.id}).length;return n?'<span class="chip good">înscrisă · '+n+' echipe</span>':(s.invited?'<span class="chip warn">invitată</span>':'<span class="chip">nouă</span>')}
 function oScoli(){var q=search.toLowerCase();var ls=S.schools.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ro')});
@@ -451,7 +451,7 @@ async function refreshAdmin(){var was=canEdit,ok=false;
   if(session){try{var r=await sb.rpc('is_admin');ok=r.data===true}catch(e){ok=false}}
   canEdit=ok;
   if(ok&&!was&&(tab==='login'||tab==='adminlogin'))tab='organizator';
-  if(!ok&&was){regs=[];S.schools=[];refs=[];revs=[];subsL=[];admList=[];lastAdm='';orgsL=[];if(tab==='organizator')tab='live'}
+  if(!ok&&was){regs=[];S.schools=[];refs=[];revs=[];mvpVotes=[];subsL=[];admList=[];lastAdm='';orgsL=[];if(tab==='organizator')tab='live'}
   if(ok&&!was){Object.keys(subs).forEach(function(t){refresh(t)});loadAdm()}
   await loadOrg();
   render(true)}
@@ -717,6 +717,14 @@ app.addEventListener('click',function(e){
     go(function(){return DB.doc('subscriptions/'+id).set(nd).then(function(){lastMySub='';loadMySub();return a==='sub-block'?(nd.blocked?'Clubul a fost blocat':'Clubul a fost deblocat'):'Plata a fost înregistrată: plătit până la '+fmtFull(nd.paidUntil)})});return}
   if(a==='org-del'){var em4=t.dataset.email;if(!arm('od'+em4,t))return;go(async function(){var r=await sb.rpc('admin_del_org',{p_email:em4});if(r.error)throw new Error(r.error.message);refresh('club_orgs');return 'Organizatorul a fost eliminat'});return}
   if(a==='adm-del'){var em3=t.dataset.email;if(!arm('ad'+em3,t))return;go(async function(){var r=await sb.rpc('admin_remove',{p_email:em3});if(r.error)throw new Error(r.error.message);lastAdm='';await loadAdm();return 'Administratorul a fost eliminat'});return}
+  if(a==='mvp-send'){var mr=t.closest('.mvprow'),mid=mr.dataset.mid,tm=mr.querySelector('[data-mv=team]').value,nu=parseInt(mr.querySelector('[data-mv=num]').value,10),nmv2=mr.querySelector('[data-mv=name]').value.trim();
+    if(!(nu>=1&&nu<=99)){toast('Introdu numărul de pe tricou (1–99).',true);return}
+    go(async function(){var r=await sb.rpc('submit_mvp',{p_token:regToken||null,p_match:mid,p_team:tm,p_num:nu,p_name:nmv2});if(r.error)throw new Error(r.error.message);lastMyMvp='';await loadMyMvp();return 'Votul a fost trimis organizatorului'});return}
+  if(a==='mvp-set'){var mset=t.dataset;go(function(){return DB.doc('matches/'+id).update({mvp:{team:mset.team,teamName:nm(mset.team),num:+mset.num,name:mset.name||''}}).then(function(){return 'Jucătorul meciului a fost ales'})});return}
+  if(a==='mvp-unset'){go(function(){return DB.doc('matches/'+id).update({mvp:null})});return}
+  if(a==='mvpw-set'){var ws=t.dataset;go(function(){return DB.doc('config/mvp').set({team:ws.team,teamName:nm(ws.team),num:+ws.num,name:ws.name||'',evName:(cfg().name+' '+cfg().date).trim(),at:Date.now()}).then(function(){return 'Cel mai bun jucător al turneului a fost declarat'})});return}
+  if(a==='mvpw-unset'){go(function(){return DB.doc('config/mvp').delete()});return}
+  if(a==='mvp-del'){if(!arm('mvd'+id,t))return;go(function(){return DB.doc('mvp_votes/'+id).delete()});return}
   if(a==='approve'){var rg=regs.filter(function(x){return x.id===id})[0];if(rg)go(function(){return approveReg(rg)});return}
   if(a==='rej-go'){var nt=($('#rjn')||{}).value||'';go(function(){rejOpen=null;return DB.doc('regs/'+id).update({status:'respinsa',note:nt.trim()}).then(function(){return 'Înscrierea a fost respinsă'})});return}
   if(a==='mark-invited'){var s=S.schools.filter(function(x){return x.id===id})[0];go(function(){return DB.doc('schools/'+id).update({invited:!s.invited})});return}
@@ -782,6 +790,8 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
       if(r.error){authMsg=/registered|already/i.test(r.error.message)?'Există deja un cont cu acest email. Autentifică-te la „Am cont”.':r.error.message;return}
       if(r.data&&r.data.user&&r.data.user.identities&&!r.data.user.identities.length){authMsg='Există deja un cont cu acest email. Autentifică-te la „Am cont”.';return}
       authMsg='Ți-am trimis un email de confirmare. Deschide linkul din el, apoi autentifică-te la „Am cont”. Clubul tău este creat automat la prima autentificare.';suDraft=null;loginMode='in'})();return}
+  if(f==='mvpman'){var mv=g('mv_m').split('|'),mnum=parseInt(g('mv_n'),10);if(!(mnum>=1&&mnum<=99)){toast('Numărul trebuie să fie între 1 și 99.',true);return}
+    var mm2=M()[mv[0]];guard(function(){return DB.doc('mvp_votes/'+uid()).set({club:g('mv_c').trim()||'Introdus de organizator',match:mv[0],team:mv[1],teamName:nm(mv[1]),num:mnum,name:g('mv_p').trim(),cat:mm2?mm2.cat:'',evName:(cfg().name+' '+cfg().date).trim(),at:Date.now(),manual:true}).then(function(){return 'Votul a fost înregistrat'})})();return}
   if(f==='orgadd'){var oe=g('og_e').trim(),oc=g('og_c').trim();guard(async function(){var r=await sb.rpc('admin_add_org',{p_email:oe,p_club:oc});if(r.error)throw new Error(r.error.message);refresh('club_orgs');return 'Organizator adăugat. Trebuie să-și creeze cont cu acest email.'})();return}
   if(f==='club'){syncClub();var cd=clubDraft;guard(async function(){var r=await sb.rpc('org_club_save',{p_doc:{city:cd.city.trim(),person:cd.person.trim(),email:cd.email.trim(),phone:cd.phone.trim(),groups:cd.groups.filter(function(x){return x.g&&(x.coach||x.phone)})}});if(r.error)throw new Error(r.error.message);return 'Datele clubului au fost salvate'})();return}
   if(f==='scfg'){var fe=parseFloat(g('sc_fee')),tm=parseInt(g('sc_tm'),10);if(isNaN(fe)||fe<0||isNaN(tm)||tm<0){toast('Completează prețul și numărul de luni.',true);return}
@@ -970,6 +980,7 @@ function vClub(){var o='<div class="bar" style="justify-content:space-between;ma
   if(!myOrg)return o+'<div class="empty">Se încarcă datele clubului…</div>';
   o+=subBanner(Object.assign({},myOrg,{name:myOrg.club}));
   o+='<div class="card"><h3>Servicii</h3><div class="bar" style="margin-top:0"><button class="btn ghost" data-tab="inscriere">Înscriere la turneu</button>'+(amicaleOK()?'<button class="btn" data-tab="amicale">Meciuri amicale</button>':'<span class="small muted">Meciurile amicale sunt disponibile cu abonament activ sau în probă.</span>')+'</div></div>';
+  o+=mvpCard(myOrg.club);
   if(!clubDraft)return o;var d=clubDraft;
   return o+'<form data-form="club"><div class="card"><h3>Datele clubului</h3><div class="grid">'+fld('cl_city','Localitate',d.city)+fld('cl_person','Persoană de contact',d.person)+fld('cl_email','Email',d.email,'email')+fld('cl_phone','Telefon',d.phone,'tel')+'</div>'+
   '<div style="margin-top:14px"><label>Grupe și antrenori</label><div class="small muted" style="margin:2px 0 8px">Adaugă fiecare grupă a clubului, cu antrenorul și telefonul lui.</div>'+grpEditor(d.groups)+'</div><div class="bar"><button class="btn" type="submit">Salvează</button></div></div></form>'}
@@ -992,6 +1003,7 @@ function vAcasa(){var c=cfg(),f=SUBF(),live=S.matches.filter(function(m){return 
   else o+='<div class="empty" style="margin-bottom:16px">Niciun meci în desfășurare. Programul și scorurile apar aici în ziua turneului.</div>';
   o+='<div class="bar" style="margin:-4px 0 8px"><button class="btn ghost" data-tab="live">Program, clasamente și echipa ta</button></div>';
   var F=[['Înscriere online','Școala trimite echipele și lotul nominal, iar organizatorul le aprobă într-un singur loc.'],['Vârsta copiilor, verificată','Anul nașterii fiecărui jucător este validat pe categorie, iar organizatorul poate face verificări prin sondaj.'],['Grupe și program automate','Aplicația împarte echipele în grupe, programează meciurile pe terenuri și generează fazele eliminatorii.'],['Scoruri și clasamente live','Părinții și antrenorii văd rezultatele în timp real și își urmăresc echipa direct pe telefon.'],['Meciuri amicale','Echipele membre se înscriu săptămânal pe categorii de vârstă și sunt programate automat, în funcție de disponibilitate.'],['Fair-play și evaluări','Cluburile primesc stele pentru fair-play, iar turneele sunt evaluate de cluburile participante.']];
+  o+=vMvpPublic();
   o+='<h2 class="sec">Ce face aplicația</h2><div class="feat">'+F.map(function(x,i){return '<div class="card"><div class="fi">'+(i+1)+'</div><h3>'+x[0]+'</h3><p>'+x[1]+'</p></div>'}).join('')+'</div>';
   o+='<h2 class="sec">Cum funcționează</h2><ol class="steps"><li><b>Devii membru.</b> Completezi datele școlii sau clubului tău.</li><li><b>Îți înscrii echipele.</b> Alegi categoria și trimiți lotul. Organizatorul aprobă înscrierea.</li><li><b>Joci și urmărești live.</b> Programul, scorurile și clasamentele sunt în aplicație.</li></ol>';
   o+='<section class="card member"><div><div class="kicker">Membri</div><h3 style="font-size:24px;margin:2px 0 6px">Primele '+f.tm+' luni sunt gratuite</h3><p style="margin:0">Apoi abonamentul este de <b>'+f.fee+' lei pe lună</b> și include înscrierea echipelor, meciurile amicale și evaluările. Urmărirea scorurilor rămâne gratuită pentru toată lumea.</p></div><div><button class="btn lg" data-tab="inscriere">Devino membru</button></div></section>';
@@ -1003,6 +1015,47 @@ function vFooter(){var c=cfg(),a=canEdit?['organizator','Administrare']:(myOrg?[
 
 function hdrBtn(){if(noDb)return '';var b=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Login']);
   return '<button class="btn ghost sm hdr-login" data-tab="'+b[0]+'" aria-label="'+b[1]+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span>'+b[1]+'</span></button>'}
+/* ---------- cel mai bun jucător (pe meci și pe turneu) ---------- */
+var mvpVotes=[],myMvp=[],MVPW=null,lastMyMvp='';
+function mvpTxt(x){return '#'+x.num+' '+esc(x.teamName||'')+(x.name?' ('+esc(x.name)+')':'')}
+function mvpMatchTeams(m){var h=resolve(m.home),a=resolve(m.away);return [h,a].filter(Boolean)}
+function mvpClubMatches(club){var k=String(club||'').toLowerCase().trim();if(!k)return [];
+  return S.matches.filter(function(m){return (m.st==='live'||m.st==='fin')&&mvpMatchTeams(m).some(function(t){return nm(t).toLowerCase().indexOf(k)===0})}).sort(function(a,b){return String(b.time).localeCompare(String(a.time))})}
+function mvpCard(club){if(!club)return '';var ms=mvpClubMatches(club);
+  var o='<div class="card"><h3>Cel mai bun jucător</h3><div class="small muted" style="margin-bottom:8px">După fiecare meci, antrenorul trimite organizatorului cel mai bun jucător în opinia lui: numărul de pe tricou și echipa lui (opțional și numele). La final, pe baza voturilor, se alege cel mai bun jucător al turneului. Poți trimite votul și prin WhatsApp organizatorului.</div>';
+  if(!ms.length)return o+'<div class="empty">Meciurile echipelor tale apar aici după ce încep.</div></div>';
+  return o+ms.map(function(m){var tl=mvpMatchTeams(m),v=myMvp.filter(function(x){return x.match===m.id})[0];
+    return '<div class="match mvprow" data-mid="'+esc(m.id)+'"><div class="mmeta"><span class="time">'+esc(m.time||'')+'</span><span class="tag">'+esc(m.cat)+'</span><span>M'+esc(m.no)+'</span>'+(m.st==='live'?'<span class="livetag">LIVE</span>':'')+'</div>'+
+    '<div class="mteams"><div class="tm">'+tn(m.home)+'</div><div class="score">'+((m.hs==null)?'<span class="vs">vs</span>':esc(m.hs)+'<i>–</i>'+esc(m.as))+'</div><div class="tm right">'+tn(m.away)+'</div></div>'+
+    (v?'<div class="small" style="margin-top:6px"><span class="chip good">votul tău</span> '+mvpTxt(v)+'</div>':'')+
+    '<div class="ed"><select data-mv="team" aria-label="Echipa">'+tl.map(function(t){return '<option value="'+esc(t)+'"'+(v&&v.team===t?' selected':'')+'>'+esc(nm(t))+'</option>'}).join('')+'</select><input data-mv="num" type="number" min="1" max="99" inputmode="numeric" placeholder="Nr. tricou" value="'+(v?esc(v.num):'')+'" style="width:96px"><input data-mv="name" placeholder="Nume (opțional)" value="'+esc((v&&v.name)||'')+'" style="width:150px"><button class="btn sm" data-act="mvp-send">'+(v?'Modifică votul':'Trimite votul')+'</button></div></div>'}).join('')+'</div>'}
+function oMvp(){var cur=(cfg().name+' '+cfg().date).trim();var vs=mvpVotes.filter(function(v){return !v.evName||v.evName===cur});
+  var ms=S.matches.filter(function(m){return m.st==='live'||m.st==='fin'}).sort(function(a,b){return String(a.time).localeCompare(String(b.time))});
+  var o='';
+  /* introducere manuală (WhatsApp) */
+  var opts='';ms.forEach(function(m){mvpMatchTeams(m).forEach(function(t){opts+='<option value="'+esc(m.id+'|'+t)+'">M'+esc(m.no)+' '+esc(m.cat)+' · '+esc(nm(resolve(m.home)))+' – '+esc(nm(resolve(m.away)))+' → '+esc(nm(t))+'</option>'})});
+  o+='<div class="card"><h3>Votul unui antrenor (primit pe WhatsApp sau telefon)</h3>'+(opts?'<form data-form="mvpman"><div class="grid"><div><label for="mv_m">Meci și echipa jucătorului</label><select id="mv_m">'+opts+'</select></div>'+fld('mv_n','Numărul de pe tricou','','number',true)+fld('mv_p','Nume jucător (opțional)')+fld('mv_c','De la (club / antrenor)')+'</div><div class="bar"><button class="btn" type="submit">Înregistrează votul</button></div></form>':'<div class="empty">Nu există încă meciuri începute.</div>')+'</div>';
+  /* pe meci */
+  var byM={};vs.forEach(function(v){(byM[v.match]=byM[v.match]||[]).push(v)});
+  var mk=ms.filter(function(m){return byM[m.id]||m.mvp});
+  o+='<div class="card"><h3>Jucătorul fiecărui meci</h3>'+(mk.length?mk.map(function(m){var cand={};(byM[m.id]||[]).forEach(function(v){var k=v.team+'|'+v.num;(cand[k]=cand[k]||{team:v.team,teamName:v.teamName,num:v.num,names:[],n:0});cand[k].n++;if(v.name)cand[k].names.push(v.name)});
+    var cl=Object.keys(cand).map(function(k){return cand[k]}).sort(function(a,b){return b.n-a.n});
+    return '<div class="match"><div class="mmeta"><span class="tag">'+esc(m.cat)+'</span><span>M'+esc(m.no)+'</span><span>'+esc(nm(resolve(m.home)))+' – '+esc(nm(resolve(m.away)))+'</span></div>'+
+    (m.mvp?'<div style="margin:6px 0"><span class="chip good">ales</span> <b>'+mvpTxt(m.mvp)+'</b> <button class="btn ghost sm" data-act="mvp-unset" data-id="'+esc(m.id)+'">Șterge</button></div>':'')+
+    cl.map(function(c){return '<div class="item" style="padding:6px 0"><div>'+mvpTxt({num:c.num,teamName:c.teamName,name:c.names[0]})+'</div><div class="small muted">'+c.n+(c.n===1?' vot':' voturi')+'</div><div class="acts"><button class="btn sm" data-act="mvp-set" data-id="'+esc(m.id)+'" data-team="'+esc(c.team)+'" data-num="'+c.num+'" data-name="'+esc(c.names[0]||'')+'">Jucătorul meciului</button></div></div>'}).join('')+'</div>'}).join(''):'<div class="empty">Niciun vot primit încă.</div>')+'</div>';
+  /* pe turneu */
+  var tot={};vs.forEach(function(v){var k=v.team+'|'+v.num;(tot[k]=tot[k]||{team:v.team,teamName:v.teamName,num:v.num,names:{},n:0,ms:{}});tot[k].n++;tot[k].ms[v.match]=1;if(v.name)tot[k].names[v.name]=1});
+  var tl=Object.keys(tot).map(function(k){return tot[k]}).sort(function(a,b){return b.n-a.n||String(a.teamName).localeCompare(String(b.teamName))});
+  o+='<div class="card"><h3>Cel mai bun jucător al turneului</h3>';
+  if(MVPW&&MVPW.team)o+='<div style="margin-bottom:10px"><span class="chip good">declarat</span> <b>'+mvpTxt(MVPW)+'</b> <button class="btn ghost sm" data-act="mvpw-unset">Retrage</button></div>';
+  o+=tl.length?'<div class="list">'+tl.slice(0,15).map(function(c,i){var nms=Object.keys(c.names);return '<div class="item"><div><div class="nm">'+(i+1)+'. #'+c.num+' '+esc(c.teamName||'')+'</div><div class="small muted">'+esc(nms.join(', '))+'</div></div><div><b>'+c.n+'</b> <span class="small muted">'+(c.n===1?'vot':'voturi')+' · '+Object.keys(c.ms).length+(Object.keys(c.ms).length===1?' meci':' meciuri')+'</span></div><div class="acts"><button class="btn sm" data-act="mvpw-set" data-team="'+esc(c.team)+'" data-num="'+c.num+'" data-name="'+esc(nms[0]||'')+'">Declară câștigător</button></div></div>'}).join('')+'</div>':'<div class="empty">Niciun vot încă. Clasamentul apare după primele voturi.</div>';
+  o+='</div>';
+  /* toate voturile */
+  o+='<div class="card"><h3>Toate voturile ('+vs.length+')</h3>'+(vs.length?'<div class="list">'+vs.slice().sort(function(a,b){return (b.at||0)-(a.at||0)}).slice(0,60).map(function(v){var m=M()[v.match];return '<div class="item"><div class="small">'+(m?'M'+esc(m.no)+' '+esc(m.cat):'—')+'</div><div>'+mvpTxt(v)+' <span class="small muted">de la '+esc(v.club||'—')+'</span></div><div class="acts"><button class="btn danger sm" data-act="mvp-del" data-id="'+esc(v.id)+'">Șterge</button></div></div>'}).join('')+'</div>':'<div class="empty">Niciun vot.</div>')+'</div>';
+  return o}
+function vMvpPublic(){if(!(MVPW&&MVPW.team))return '';return '<div class="card" style="border-color:var(--accent);border-width:2px"><div class="kicker">Cel mai bun jucător al turneului</div><div style="font-family:var(--font-display);font-size:30px;font-weight:700;margin-top:4px">★ '+mvpTxt(MVPW)+'</div></div>'}
+async function loadMyMvp(){if(!sb)return;try{var r=await sb.rpc('my_mvp',{p_token:regToken||null});if(r.error)return;var j=JSON.stringify(r.data);if(j===lastMyMvp)return;lastMyMvp=j;myMvp=r.data||[];sched()}catch(e){}}
+
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKKwenB_brCKF7l44';
@@ -1046,6 +1099,8 @@ async function boot(){
   DB.collection('fr_regs').onSnapshot(function(s){frRegs=docs(s);sched()},err);
   ['schools','teams','matches'].forEach(function(n){DB.collection(n).onSnapshot(function(s){S[n]=docs(s);sched()},err)});
   DB.collection('regs').onSnapshot(function(s){regs=docs(s);sched()},err);
+  DB.doc('config/mvp').onSnapshot(function(s){MVPW=s.exists?s.data():null;sched()},err);
+  DB.collection('mvp_votes').onSnapshot(function(s){mvpVotes=docs(s);sched()},err);
   DB.doc('config/reviews').onSnapshot(function(s){RCFG=s.exists?s.data():null;sched()},err);
   DB.collection('club_ratings').onSnapshot(function(s){ratings=docs(s);sched()},err);
   DB.collection('referees').onSnapshot(function(s){refs=docs(s);sched()},err);
@@ -1055,9 +1110,9 @@ async function boot(){
   DB.collection('subscriptions').onSnapshot(function(s){subsL=docs(s).map(function(d){return d});sched()},err);
   await refreshAdmin();
   tab=valid.indexOf(h)>-1?h:'acasa';
-  await loadMyReg();await loadFrState();await loadMyFr();await loadRev();await loadMyRev();await loadMySub();await loadAdm();
+  await loadMyReg();await loadFrState();await loadMyFr();await loadRev();await loadMyRev();await loadMySub();await loadAdm();await loadMyMvp();
   render(true);
-  var tick=function(){if(document.hidden)return;Object.keys(subs).forEach(function(t){refresh(t)});loadMyReg();loadFrState();loadMyFr();loadRev();loadMyRev();loadMySub();loadAdm();loadOrg()};
+  var tick=function(){if(document.hidden)return;Object.keys(subs).forEach(function(t){refresh(t)});loadMyReg();loadFrState();loadMyFr();loadRev();loadMyRev();loadMySub();loadAdm();loadOrg();loadMyMvp()};
   setInterval(tick,20000);
   document.addEventListener('visibilitychange',tick);
   window.addEventListener('online',tick)}
