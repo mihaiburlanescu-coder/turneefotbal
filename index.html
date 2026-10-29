@@ -427,14 +427,30 @@ function oProgram(){var c=cats();var o='<div class="card"><h3>Generare</h3><div 
   return o}
 
 /* ---------- autentificare organizator ---------- */
-function vLogin(){var o='<h2 style="margin-bottom:12px">Organizator</h2>';
+var loginMode='in',suDraft=null;
+function suNew(){suDraft={email:'',pw:'',club:'',city:'',groups:[{g:cats()[0]||'',coach:'',phone:''}]}}
+function syncSu(){if(tab!=='login'||loginMode!=='new'||!suDraft)return;var gv=function(i){var e=document.getElementById(i);return e?e.value:''};
+  suDraft.email=gv('su_email').trim();suDraft.pw=gv('su_pw');suDraft.club=gv('su_club');suDraft.city=gv('su_city');
+  suDraft.groups=Array.prototype.map.call(document.querySelectorAll('.sgrow'),function(r){return{g:r.querySelector('.sg-g').value,coach:r.querySelector('.sg-c').value.trim(),phone:r.querySelector('.sg-p').value.trim()}})}
+function authCommon(o){
   if(recovery)return o+'<div class="card"><h3>Parolă nouă</h3><form data-form="newpw"><div class="grid">'+fld('lg_np','Parola nouă (minimum 8 caractere)','','password',true)+'</div><div class="bar"><button class="btn" type="submit">Salvează parola</button></div></form></div>';
-  if(session&&!canEdit&&!myOrg)return o+'<div class="card"><h3>Cont fără drept de acces</h3><p style="margin:0">Ești autentificat ca <b>'+esc((session.user&&session.user.email)||'')+'</b>, dar adresa nu este asociată unui club sau unui administrator. Cere administratorului să o adauge.</p><div class="bar"><button class="btn ghost" data-act="logout">Deconectare</button></div></div>';
-  return o+'<div class="card"><p style="margin:0 0 12px">Autentificarea este pentru organizatorii cu abonament (cluburi) și pentru administratori. Antrenorii și părinții folosesc filele Live și Înscriere școală.</p><form data-form="login"><div class="grid">'+fld('lg_email','Email',loginEmail,'email',true)+fld('lg_pw','Parola','','password',true)+'</div>'+(authMsg?'<p class="small" style="margin:10px 0 0">'+esc(authMsg)+'</p>':'')+'<div class="bar"><button class="btn" type="submit">Autentifică-te</button><button class="btn ghost" type="button" data-act="signup">Creează cont</button><button class="btn ghost" type="button" data-act="reset">Am uitat parola</button></div></form><div class="small muted" style="margin-top:10px">Un cont nou devine organizator doar dacă adresa lui de email a fost adăugată de un administrator.</div></div>'}
+  if(session&&!canEdit&&!myOrg)return o+'<div class="card"><h3>Cont fără acces</h3><p style="margin:0">Ești autentificat ca <b>'+esc((session.user&&session.user.email)||'')+'</b>, dar adresa nu este asociată unui club sau unui administrator. Dacă tocmai ți-ai creat contul, confirmă emailul din mesajul primit, apoi reîncarcă pagina. Altfel, contactează administratorul.</p><div class="bar"><button class="btn ghost" data-act="logout">Deconectare</button></div></div>';
+  return null}
+function loginCard(admin){
+  return '<div class="card"><h3>'+(admin?'Autentificare administrator':'Autentificare club')+'</h3><form data-form="login"><div class="grid">'+fld('lg_email','Email',loginEmail,'email',true)+fld('lg_pw','Parola','','password',true)+'</div>'+(authMsg?'<p class="small" style="margin:10px 0 0">'+esc(authMsg)+'</p>':'')+'<div class="bar"><button class="btn" type="submit">Autentifică-te</button><button class="btn ghost" type="button" data-act="reset">Am uitat parola</button></div></form></div>'}
+function vLogin(){var o='<h2 style="margin-bottom:12px">Login club</h2>',c=authCommon(o);if(c!==null)return c;
+  o+='<div class="sub-tabs" role="tablist"><button role="tab" data-act="lmode" data-m="in" aria-selected="'+(loginMode==='in')+'">Am cont</button><button role="tab" data-act="lmode" data-m="new" aria-selected="'+(loginMode==='new')+'">Cont nou pentru club</button></div>';
+  if(loginMode==='in')return o+'<p class="small muted" style="margin:0 0 12px">Cluburile și academiile cu cont se autentifică aici. Antrenorii și părinții nu au nevoie de cont: folosesc filele Live și Devino membru.</p>'+loginCard(false);
+  if(!suDraft)suNew();var d=suDraft;
+  return o+'<form data-form="clubsignup"><div class="card"><h3>Deschide cont pentru clubul tău</h3><p class="small muted" style="margin:0 0 10px">Primele '+SUBF().tm+' luni sunt gratuite, apoi abonamentul este de '+SUBF().fee+' lei/lună.</p><div class="grid">'+fld('su_email','Email',d.email,'email',true)+fld('su_pw','Parola (minimum 8 caractere)',d.pw,'password',true)+fld('su_club','Numele academiei / clubului',d.club,'text',true)+fld('su_city','Orașul',d.city,'text',true)+'</div>'+
+  '<div style="margin-top:14px"><label>Grupe de vârstă, antrenor și telefon</label><div class="small muted" style="margin:2px 0 8px">Adaugă fiecare grupă a academiei, cu numele antrenorului și telefonul lui.</div>'+grpEditor(d.groups)+'</div>'+
+  (authMsg?'<p class="small" style="margin:12px 0 0">'+esc(authMsg)+'</p>':'')+'<div class="bar"><button class="btn" type="submit">Creează cont</button></div><div class="small muted" style="margin-top:8px">Vei primi un email de confirmare. După ce îl confirmi și te autentifici, contul clubului este activ.</div></div></form>'}
+function vAdminLogin(){var o='<h2 style="margin-bottom:12px">Administrare</h2>',c=authCommon(o);if(c!==null)return c;
+  return o+'<p class="small muted" style="margin:0 0 12px">Zonă rezervată administratorilor site-ului.</p>'+loginCard(true)}
 async function refreshAdmin(){var was=canEdit,ok=false;
   if(session){try{var r=await sb.rpc('is_admin');ok=r.data===true}catch(e){ok=false}}
   canEdit=ok;
-  if(ok&&!was&&tab==='login')tab='organizator';
+  if(ok&&!was&&(tab==='login'||tab==='adminlogin'))tab='organizator';
   if(!ok&&was){regs=[];S.schools=[];refs=[];revs=[];subsL=[];admList=[];lastAdm='';orgsL=[];if(tab==='organizator')tab='live'}
   if(ok&&!was){Object.keys(subs).forEach(function(t){refresh(t)});loadAdm()}
   await loadOrg();
@@ -616,10 +632,10 @@ function render(force){
   var o='<header class="hdr"><div class="brand"><img class="logo" src="logo.svg" alt="" width="56" height="65"><div><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></div>'+hdrBtn()+'</div></header>';
   var tabs=[['acasa','Acasă'],['live','Live: scoruri'],['inscriere','Devino membru'],['regulament','Regulament']];if(amicaleOK())tabs.splice(3,0,['amicale','Amicale']);
   if(noDb)tabs=[['regulament','Regulament']];
-  var hidden={organizator:canEdit,club:!!myOrg&&!canEdit,login:!canEdit&&!myOrg};
+  var hidden={organizator:canEdit,club:!!myOrg&&!canEdit,login:!canEdit&&!myOrg,adminlogin:!canEdit&&!myOrg};
   if(!tabs.some(function(t){return t[0]===tab})&&!hidden[tab])tab=tabs[0][0];
   o+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</nav>';
-  o+=({acasa:vAcasa,organizator:vOrg,club:vClub,inscriere:vInscriere,amicale:vAmicale,live:vLive,regulament:vRegulament,login:vLogin}[tab])();
+  o+=({acasa:vAcasa,adminlogin:vAdminLogin,organizator:vOrg,club:vClub,inscriere:vInscriere,amicale:vAmicale,live:vLive,regulament:vRegulament,login:vLogin}[tab])();
   if(!noDb)o+=vFooter();
   var sy=window.scrollY;$('#app').innerHTML=o;foldCats();window.scrollTo(0,sy)}
 var rt;function sched(){clearTimeout(rt);rt=setTimeout(function(){render(false)},60)}
@@ -637,7 +653,7 @@ app.addEventListener('click',function(e){
   var a=t.dataset.act,id=t.dataset.id;
   if(a==='copy'){copy(t.dataset.txt);return}
   if(a==='invite'){inviteOpen=inviteOpen===id?null:id;render(true);return}
-  if(a==='grp-add'||a==='grp-rm'){var lst;if(tab==='club'){syncClub();lst=clubDraft.groups}else{syncSg();lst=sgDraft}
+  if(a==='grp-add'||a==='grp-rm'){var lst;if(tab==='club'){syncClub();lst=clubDraft.groups}else if(tab==='login'){syncSu();lst=suDraft.groups}else{syncSg();lst=sgDraft}
     if(a==='grp-add')lst.push({g:cats()[0]||'',coach:'',phone:''});else lst.splice(+t.dataset.i,1);render(true);return}
   if(a==='edit-school'){sgDraft=null;sgFields=null;editSchool=id;render(true);window.scrollTo({top:0,behavior:'smooth'});return}
   if(a==='cancel-school'){sgDraft=null;sgFields=null;editSchool=null;render(true);return}
@@ -648,6 +664,7 @@ app.addEventListener('click',function(e){
   if(a==='rej-open'){rejOpen=id;render(true);return}
   if(a==='rej-cancel'){rejOpen=null;render(true);return}
   var go=function(fn){return guard(fn)()};
+  if(a==='lmode'){syncSu();loginMode=t.dataset.m;authMsg='';render(true);return}
   if(a==='logout'){go(async function(){await sb.auth.signOut();return 'Te-ai deconectat'});return}
   if(a==='signup'||a==='reset'){var em2=($('#lg_email')||{}).value||'',pw2=($('#lg_pw')||{}).value||'';loginEmail=em2.trim();authMsg='';
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(loginEmail)){authMsg='Scrie o adresă de email validă.';render(true);return}
@@ -752,6 +769,19 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
       return 'Arbitrul a fost salvat'})();return}
   if(f==='rev'){var rst2={};RCRIT.forEach(function(k){var v=g('rv_'+k[0]);if(v)rst2[k[0]]=+v});if(!rst2.org){toast('Acordă nota pentru organizarea generală.',true);return}
     guard(async function(){var r=await sb.rpc('submit_review',{p_token:regToken||null,p_doc:{st:rst2,comment:g('rv_c').trim()}});if(r.error)throw new Error(r.error.message);lastMyRev='';lastRev='';await loadMyRev();await loadRev();return 'Mulțumim! Evaluarea a fost trimisă.'})();return}
+  if(f==='clubsignup'){syncSu();var sd=suDraft,er=[];
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(sd.email))er.push('Scrie o adresă de email validă.');
+    if(sd.pw.length<8)er.push('Parola are minimum 8 caractere.');
+    if(!sd.club.trim())er.push('Completează numele academiei.');
+    if(!sd.city.trim())er.push('Completează orașul.');
+    var gok=sd.groups.filter(function(x){return x.g&&x.coach&&x.phone});
+    if(!gok.length||gok.length<sd.groups.length)er.push('Fiecare grupă are nevoie de grupa de vârstă, numele antrenorului și telefon.');
+    if(er.length){authMsg=er.join(' ');render(true);return}
+    loginEmail=sd.email;authMsg='';
+    guard(async function(){var r=await sb.auth.signUp({email:sd.email,password:sd.pw,options:{emailRedirectTo:location.origin+'/',data:{club:sd.club.trim(),city:sd.city.trim(),groups:gok}}});
+      if(r.error){authMsg=/registered|already/i.test(r.error.message)?'Există deja un cont cu acest email. Autentifică-te la „Am cont”.':r.error.message;return}
+      if(r.data&&r.data.user&&r.data.user.identities&&!r.data.user.identities.length){authMsg='Există deja un cont cu acest email. Autentifică-te la „Am cont”.';return}
+      authMsg='Ți-am trimis un email de confirmare. Deschide linkul din el, apoi autentifică-te la „Am cont”. Clubul tău este creat automat la prima autentificare.';suDraft=null;loginMode='in'})();return}
   if(f==='orgadd'){var oe=g('og_e').trim(),oc=g('og_c').trim();guard(async function(){var r=await sb.rpc('admin_add_org',{p_email:oe,p_club:oc});if(r.error)throw new Error(r.error.message);refresh('club_orgs');return 'Organizator adăugat. Trebuie să-și creeze cont cu acest email.'})();return}
   if(f==='club'){syncClub();var cd=clubDraft;guard(async function(){var r=await sb.rpc('org_club_save',{p_doc:{city:cd.city.trim(),person:cd.person.trim(),email:cd.email.trim(),phone:cd.phone.trim(),groups:cd.groups.filter(function(x){return x.g&&(x.coach||x.phone)})}});if(r.error)throw new Error(r.error.message);return 'Datele clubului au fost salvate'})();return}
   if(f==='scfg'){var fe=parseFloat(g('sc_fee')),tm=parseInt(g('sc_tm'),10);if(isNaN(fe)||fe<0||isNaN(tm)||tm<0){toast('Completează prețul și numărul de luni.',true);return}
@@ -797,7 +827,7 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
     var d2={name:g('c_name').trim()||DEF.name,date:g('c_date').trim(),location:g('c_loc').trim(),contact:g('c_contact').trim(),fee:g('c_fee').trim(),appLink:g('c_link').trim(),categories:g('c_cats').trim()||DEF.categories,catYears:g('c_years').trim(),regText:g('c_reg').trim(),fields:n('c_fields',2,1),start:g('c_start')||'09:00',matchMin:n('c_mm',15,1),breakMin:n('c_bm',5,0),rest:n('c_rest',1,0),maxGroup:n('c_mg',4,2),qualify:n('c_q',2,1),pw:n('c_pw',3,0),pd:n('c_pd',1,0)};
     guard(function(){return DB.doc('config/main').set(d2).then(function(){return 'Setările au fost salvate'})})()}
 });
-window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['acasa','organizator','club','inscriere','amicale','live','regulament','login'].indexOf(h)>-1){tab=h;render(true)}});
+window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['acasa','organizator','club','inscriere','amicale','live','regulament','login','adminlogin'].indexOf(h)>-1){tab=h;render(true)}});
 
 /* ---------- arbitri, stele pentru cluburi, review-uri ---------- */
 var openCats={};
@@ -946,10 +976,10 @@ function vClub(){var o='<div class="bar" style="justify-content:space-between;ma
 async function loadClub(){if(!sb||!myOrg)return;try{var r=await sb.rpc('org_club_get');if(r.error||!r.data)return;var s=r.data;clubDraft={city:s.city||'',person:s.person||'',email:s.email||'',phone:s.phone||'',groups:(s.groups||[]).map(function(g){return{g:g.g,coach:g.coach||'',phone:g.phone||''}})};sched()}catch(e){}}
 async function loadOrg(){var prev=JSON.stringify(myOrg);
   if(!sb||!session||canEdit){myOrg=null}
-  else{try{var r=await sb.rpc('org_info');myOrg=(!r.error&&r.data)?Object.assign({},r.data,{name:r.data.club}):null}catch(e){myOrg=null}}
+  else{try{var r=await sb.rpc('org_info');if(!r.error&&!r.data){var rg=await sb.rpc('org_self_register');if(!rg.error&&rg.data===true)r=await sb.rpc('org_info');else if(rg.error)authMsg=rg.error.message}myOrg=(!r.error&&r.data)?Object.assign({},r.data,{name:r.data.club}):null}catch(e){myOrg=null}}
   var j=JSON.stringify(myOrg);if(j===prev)return;
   frDraft=null;frMine=[];lastFr='';
-  if(myOrg){frToken='org';clubDraft=null;Object.keys(subs).forEach(function(t){refresh(t)});if(tab==='login')tab='club';loadClub();loadMyFr()}
+  if(myOrg){frToken='org';clubDraft=null;Object.keys(subs).forEach(function(t){refresh(t)});if(tab==='login'||tab==='adminlogin')tab='club';loadClub();loadMyFr()}
   else{clubDraft=null;if(tab==='club'||(tab==='amicale'&&!amicaleOK()))tab='live'}
   render(true)}
 /* ---------- pagina de start și subsol ---------- */
@@ -968,10 +998,10 @@ function vAcasa(){var c=cfg(),f=SUBF(),live=S.matches.filter(function(m){return 
   var cs=clubStars().slice(0,5);
   if(cs.length)o+='<h2 class="sec">Cluburi cu cele mai multe stele</h2><div class="card"><div class="list">'+cs.map(function(x){return '<div class="item"><div class="nm">'+esc(x.name)+'</div><div>'+starTxt(x.avg)+' <b>'+x.avg.toFixed(1)+'</b></div><div class="small muted">'+x.n+(x.n===1?' turneu':' turnee')+'</div></div>'}).join('')+'</div></div>';
   return o}
-function vFooter(){var c=cfg(),a=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Autentificare organizatori']);
+function vFooter(){var c=cfg(),a=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['adminlogin','Administrare']);
   return '<footer class="foot"><div class="foot-in"><div class="foot-brand"><img src="logo.svg" width="28" height="33" alt=""><b>turneefotbal.ro</b></div><nav class="foot-nav" aria-label="Navigare secundară"><button data-tab="acasa">Acasă</button><button data-tab="live">Live</button><button data-tab="inscriere">Devino membru</button><button data-tab="regulament">Regulament</button></nav><div><button class="btn ghost sm" data-tab="'+a[0]+'">'+a[1]+'</button></div></div><div class="small muted foot-c">© '+new Date().getFullYear()+' turneefotbal.ro'+(c.contact?' · '+esc(c.contact):'')+'</div></footer>'}
 
-function hdrBtn(){if(noDb)return '';var b=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Autentificare']);
+function hdrBtn(){if(noDb)return '';var b=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Login']);
   return '<button class="btn ghost sm hdr-login" data-tab="'+b[0]+'" aria-label="'+b[1]+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span>'+b[1]+'</span></button>'}
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
@@ -1000,7 +1030,7 @@ function makeDB(){return{
 /* ---------- pornire ---------- */
 async function boot(){
   var h=(location.hash||'').replace('#','');
-  var valid=['acasa','organizator','club','inscriere','amicale','live','regulament','login'];
+  var valid=['acasa','organizator','club','inscriere','amicale','live','regulament','login','adminlogin'];
   if(!(window.supabase&&window.supabase.createClient)){noDb=true;tab='regulament';render(true);return}
   try{sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){noDb=true;tab='regulament';render(true);return}
   DB=makeDB();
