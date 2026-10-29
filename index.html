@@ -294,7 +294,7 @@ function validateReg(d){var errs=[],teams=[];
   return{errs:errs,teams:teams}}
 function regText(d){var t=['ÎNSCRIERE '+cfg().name,'Școala: '+d.school,'Localitate: '+d.city,'Contact: '+[d.person,d.email,d.phone].filter(Boolean).join(', '),''];
   d.teams.forEach(function(x,i){t.push('Echipa '+(i+1)+': '+x.cat+(x.suf?' '+x.suf:''));x.players.forEach(function(p){t.push('  '+p.n+', '+p.y)})});t.push('','Declar că am citit și accept regulamentul turneului.');return t.join('\n')}
-function vInscriere(){var c=cfg(),o='<h2 style="margin-bottom:12px">Înscrierea școlii</h2>';
+function vInscriere(){var c=cfg(),o='<h2 style="margin-bottom:12px">Înscrierea școlii</h2>'+subBanner();
   if(myReg&&myReg.status==='aprobata')
     return o+'<div class="card"><h3>'+esc(myReg.school)+' <span class="chip good">înscriere aprobată</span></h3><div class="list">'+(myReg.teams||[]).map(function(t){return '<div class="item"><div class="nm">'+esc(myReg.school+(t.suf?' '+t.suf:''))+'</div><div>'+esc(t.cat)+'</div><div class="small muted">'+(t.players||[]).length+' jucători în lot</div></div>'}).join('')+'</div><p class="small muted" style="margin-bottom:0">Pentru modificări, contactează organizatorul.'+(c.contact?' '+esc(c.contact):'')+'</p></div>'+revCard()+liveFooter();
   if(!regDraft)resetDraft();var d=regDraft;
@@ -347,8 +347,8 @@ function vRegulament(){var c=cfg(),o='<h2 style="margin-bottom:12px">Regulamentu
   if(noDb)o+='<div class="card"><p style="margin:0">Datele turneului nu s-au putut încărca. Reîncarcă pagina sau încearcă din nou peste câteva minute.</p></div>';
   if(c.regText)return o+'<div class="card"><div style="white-space:pre-wrap">'+esc(c.regText)+'</div></div>';
   return o+regArticles().map(function(a,i){return '<div class="card"><h3>Art. '+(i+1)+'. '+esc(a[0])+'</h3><div style="white-space:pre-wrap">'+esc(a[1])+'</div></div>'}).join('')+(c.contact?'<div class="card"><h3>Contact organizator</h3><div>'+esc(c.contact)+'</div></div>':'')}
-function vOrg(){var np=regs.filter(function(r){return r.status==='noua'}).length;var tabs=[['inscrieri','Înscrieri'+(np?' ('+np+')':'')],['scoli','Școli și invitații'],['turneu','Turneu'],['echipe','Echipe'],['program','Program și scoruri'],['amicale','Amicale'+(frRegs.some(function(r){return r.week===frWeek()&&r.status==='activa'})?' ('+frRegs.filter(function(r){return r.week===frWeek()&&r.status==='activa'}).length+')':'')],['arbitri','Arbitri'],['stele','Stele și review-uri']];
-  return '<div class="bar" style="justify-content:space-between;margin:0 0 12px"><h2>Panou organizator</h2><button class="btn ghost sm" data-act="logout">Deconectare</button></div><div class="sub-tabs" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-otab="'+t[0]+'" aria-selected="'+(otab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'+({inscrieri:oInscrieri,scoli:oScoli,turneu:oTurneu,echipe:oEchipe,program:oProgram,amicale:oAmicale,arbitri:oArbitri,stele:oStele}[otab])()}
+function vOrg(){var np=regs.filter(function(r){return r.status==='noua'}).length;var tabs=[['inscrieri','Înscrieri'+(np?' ('+np+')':'')],['scoli','Școli și invitații'],['turneu','Turneu'],['echipe','Echipe'],['program','Program și scoruri'],['amicale','Amicale'+(frRegs.some(function(r){return r.week===frWeek()&&r.status==='activa'})?' ('+frRegs.filter(function(r){return r.week===frWeek()&&r.status==='activa'}).length+')':'')],['arbitri','Arbitri'],['stele','Stele și review-uri'],['admin','Administrare']];
+  return '<div class="bar" style="justify-content:space-between;margin:0 0 12px"><h2>Panou organizator</h2><button class="btn ghost sm" data-act="logout">Deconectare</button></div><div class="sub-tabs" role="tablist">'+tabs.map(function(t){return '<button role="tab" data-otab="'+t[0]+'" aria-selected="'+(otab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'+({inscrieri:oInscrieri,scoli:oScoli,turneu:oTurneu,echipe:oEchipe,program:oProgram,amicale:oAmicale,arbitri:oArbitri,stele:oStele,admin:oAdmin}[otab])()}
 
 function schoolStatus(s){var n=S.teams.filter(function(t){return t.school===s.id}).length;return n?'<span class="chip good">înscrisă · '+n+' echipe</span>':(s.invited?'<span class="chip warn">invitată</span>':'<span class="chip">nouă</span>')}
 function oScoli(){var q=search.toLowerCase();var ls=S.schools.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ro')});
@@ -416,8 +416,8 @@ async function refreshAdmin(){var was=canEdit,ok=false;
   if(session){try{var r=await sb.rpc('is_admin');ok=r.data===true}catch(e){ok=false}}
   canEdit=ok;
   if(ok&&!was&&tab==='login')tab='organizator';
-  if(!ok&&was){regs=[];S.schools=[];refs=[];revs=[];if(tab==='organizator')tab='live'}
-  if(ok&&!was)Object.keys(subs).forEach(function(t){refresh(t)});
+  if(!ok&&was){regs=[];S.schools=[];refs=[];revs=[];subsL=[];admList=[];lastAdm='';if(tab==='organizator')tab='live'}
+  if(ok&&!was){Object.keys(subs).forEach(function(t){refresh(t)});loadAdm()}
   render(true)}
 async function loadMyReg(){if(!regToken||!sb)return;
   try{var r=await sb.rpc('my_registration',{p_token:regToken});if(r.error)return;var j=JSON.stringify(r.data);if(j===lastMy)return;lastMy=j;
@@ -522,7 +522,7 @@ function syncFr(){if(!frDraft)return;var g=function(id){var e=document.getElemen
 function frStatus(r){if(r.status==='retrasa')return '<span class="chip bad">retrasă</span>';
   var act=(r.matches||[]).filter(function(m){return m.st!=='anulat'});if(act.length)return '<span class="chip good">programată</span>';
   if(r.d&&r.d.sched==='fara')return '<span class="chip warn">fără adversar deocamdată</span>';return '<span class="chip">în așteptarea programării</span>'}
-function vFrInscrie(){var c=acfg(),o='';
+function vFrInscrie(){var c=acfg(),o=subBanner();
   o+='<div class="card"><p style="margin:0">'+(frOpenNow()?'<span class="chip good">înscrieri deschise</span> Se pot face înscrieri <b>de luni până '+esc(frDeadlineTxt())+'</b>. Programul pentru weekend se publică după aceea.':'<span class="chip bad">înscrieri închise</span> Se redeschid luni.')+'</p>'+
     '<p class="small muted" style="margin:8px 0 0">Echipele se programează doar cu echipe din <b>aceeași categorie de vârstă</b>, în ordinea înscrierii și în funcție de intervalele și terenurile libere.</p></div>';
   if(frMine.length){o+='<div class="card"><h3>Înscrierile mele în această săptămână</h3><div class="list">'+frMine.map(function(r){var d=r.d||{};var ms=(r.matches||[]).filter(function(m){return m.st!=='anulat'});
@@ -668,6 +668,12 @@ app.addEventListener('click',function(e){
   if(a==='rev-toggle'){var wasOpen=!!(RCFG&&RCFG.open);go(function(){return DB.doc('config/reviews').set({open:!wasOpen}).then(function(){return wasOpen?'Evaluarea a fost închisă':'Evaluarea a fost deschisă'})});return}
   if(a==='rev-pub'){var rv1=revs.filter(function(x){return x.id===id})[0];if(rv1)go(function(){return DB.doc('reviews/'+id).update({pub:!rv1.pub}).then(function(){lastRev='';loadRev();return rv1.pub?'Comentariul a fost ascuns':'Comentariul a fost publicat'})});return}
   if(a==='rev-del'){if(!arm('rvd'+id,t))return;go(function(){return DB.doc('reviews/'+id).delete().then(function(){lastRev='';loadRev();return 'Evaluarea a fost ștearsă'})});return}
+  if(a==='sub-pay'||a==='sub-block'){var cc=subClubs().filter(function(x){return x.key===id})[0];if(!cc)return;var td=todayIso();
+    var base=cc.d||{name:cc.name,trial:td,paidUntil:'',blocked:false,payments:[]};var nd=Object.assign({},base);delete nd.id;nd.payments=(base.payments||[]).slice();
+    if(a==='sub-block'){nd.blocked=!nd.blocked}
+    else{var nn=+t.dataset.n,pu=nd.paidUntil&&nd.paidUntil>td?nd.paidUntil:td;nd.paidUntil=addMonthsIso(pu,nn);nd.payments.push({at:td,months:nn,amount:nn*SUBF().fee,by:(session&&session.user&&session.user.email)||''})}
+    go(function(){return DB.doc('subscriptions/'+id).set(nd).then(function(){lastMySub='';loadMySub();return a==='sub-block'?(nd.blocked?'Clubul a fost blocat':'Clubul a fost deblocat'):'Plata a fost înregistrată: plătit până la '+fmtFull(nd.paidUntil)})});return}
+  if(a==='adm-del'){var em3=t.dataset.email;if(!arm('ad'+em3,t))return;go(async function(){var r=await sb.rpc('admin_remove',{p_email:em3});if(r.error)throw new Error(r.error.message);lastAdm='';await loadAdm();return 'Administratorul a fost eliminat'});return}
   if(a==='approve'){var rg=regs.filter(function(x){return x.id===id})[0];if(rg)go(function(){return approveReg(rg)});return}
   if(a==='rej-go'){var nt=($('#rjn')||{}).value||'';go(function(){rejOpen=null;return DB.doc('regs/'+id).update({status:'respinsa',note:nt.trim()}).then(function(){return 'Înscrierea a fost respinsă'})});return}
   if(a==='mark-invited'){var s=S.schools.filter(function(x){return x.id===id})[0];go(function(){return DB.doc('schools/'+id).update({invited:!s.invited})});return}
@@ -720,6 +726,9 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
       return 'Arbitrul a fost salvat'})();return}
   if(f==='rev'){var rst2={};RCRIT.forEach(function(k){var v=g('rv_'+k[0]);if(v)rst2[k[0]]=+v});if(!rst2.org){toast('Acordă nota pentru organizarea generală.',true);return}
     guard(async function(){var r=await sb.rpc('submit_review',{p_token:regToken||null,p_doc:{st:rst2,comment:g('rv_c').trim()}});if(r.error)throw new Error(r.error.message);lastMyRev='';lastRev='';await loadMyRev();await loadRev();return 'Mulțumim! Evaluarea a fost trimisă.'})();return}
+  if(f==='scfg'){var fe=parseFloat(g('sc_fee')),tm=parseInt(g('sc_tm'),10);if(isNaN(fe)||fe<0||isNaN(tm)||tm<0){toast('Completează prețul și numărul de luni.',true);return}
+    guard(function(){return DB.doc('config/abonament').set({fee:fe,trialMonths:tm}).then(function(){return 'Setările abonamentului au fost salvate'})})();return}
+  if(f==='adm'){var ae=g('ad_e').trim();guard(async function(){var r=await sb.rpc('admin_add',{p_email:ae});if(r.error)throw new Error(r.error.message);lastAdm='';await loadAdm();return 'Administrator adăugat. Trebuie să-și creeze cont cu acest email.'})();return}
   if(f==='fr'){syncFr();var d0=frDraft,errs=[],c0=acfg(),avail=[];
     if(!d0.school.trim())errs.push('Completează denumirea școlii.');
     if(!d0.person.trim()||(!d0.email.trim()&&!d0.phone.trim()))errs.push('Completează persoana de contact și un email sau un telefon.');
@@ -731,7 +740,7 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
     guard(async function(){var r=await sb.rpc('submit_friendly',{p_token:frToken||null,p_doc:fdoc});
       if(r.error){frErr=[r.error.message||'Înscrierea nu a putut fi trimisă.'];return 'Înscrierea nu a fost trimisă. Vezi mesajul din formular.'}
       frToken=r.data.token;try{localStorage.setItem('tf-fr-token',frToken);localStorage.setItem('tf-fr-last',JSON.stringify({school:fdoc.school,person:fdoc.person,email:fdoc.email,phone:fdoc.phone}))}catch(x){}
-      frErr=[];frDirty=false;frDraft=null;lastFr='';await loadMyFr();return 'Echipa a fost înscrisă'})();return}
+      frErr=[];frDirty=false;frDraft=null;lastFr='';await loadMyFr();lastMySub='';loadMySub();return 'Echipa a fost înscrisă'})();return}
   if(f==='acfg'){var n2=function(id,def,min){var v=parseInt(g(id),10);return isNaN(v)||v<min?def:v};var dys={};
     DAYS.forEach(function(k){dys[k]={on:!!($('#a_on_'+k)||{}).checked,from:g('a_from_'+k)||ADEF.days[k].from,to:g('a_to_'+k)||ADEF.days[k].to}});
     var ad={open:g('a_open')!=='0',dday:n2('a_dday',4,1),dhour:g('a_dhour')||'18:00',fields:n2('a_fields',2,1),matchMin:n2('a_mm',40,5),breakMin:n2('a_bm',10,0),maxPer:n2('a_max',1,1),mode:g('a_mode')==='fit'?'fit':'order',place:g('a_place').trim(),days:dys};
@@ -745,7 +754,7 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
     guard(async function(){var r=await sb.rpc('submit_registration',{p_token:regToken||null,p_doc:doc});
       if(r.error){regErrors=[r.error.message||'Înscrierea nu a putut fi trimisă.'];return 'Înscrierea nu a fost trimisă. Vezi mesajul din formular.'}
       regToken=r.data;try{localStorage.setItem('tf-reg-token',regToken)}catch(x){}
-      regErrors=[];regDirty=false;lastMy='';await loadMyReg();return 'Înscrierea a fost trimisă organizatorului'})();return}
+      regErrors=[];regDirty=false;lastMy='';await loadMyReg();lastMySub='';loadMySub();return 'Înscrierea a fost trimisă organizatorului'})();return}
   if(f==='login'){var em=g('lg_email').trim(),pw=g('lg_pw');loginEmail=em;authMsg='';
     guard(async function(){var r=await sb.auth.signInWithPassword({email:em,password:pw});
       if(r.error){authMsg=/not confirmed/i.test(r.error.message)?'Confirmă mai întâi emailul din mesajul primit.':'Email sau parolă greșite.';return}
@@ -836,6 +845,46 @@ function oStele(){var ev=evKey(),clubs=clubsNow(),open=!!(RCFG&&RCFG.open);
 async function loadRev(){if(!sb)return;try{var a=await sb.rpc('review_summary'),b=await sb.rpc('review_comments');if(a.error||b.error)return;var j=JSON.stringify([a.data,b.data]);if(j===lastRev)return;lastRev=j;revSum=a.data||[];revCom=b.data||[];sched()}catch(e){}}
 async function loadMyRev(){if(!regToken||!sb)return;try{var r=await sb.rpc('my_review',{p_token:regToken});if(r.error)return;var j=JSON.stringify(r.data);if(j===lastMyRev)return;lastMyRev=j;myRev=r.data||null;sched()}catch(e){}}
 
+/* ---------- administrare: abonamente și administratori ---------- */
+var subsL=[],SCFG=null,mySub=null,admList=[],lastMySub='',lastAdm='';
+var SUBF=function(){return{fee:(SCFG&&+SCFG.fee>=0&&SCFG.fee!=='')?+SCFG.fee:10,tm:(SCFG&&SCFG.trialMonths!=null&&SCFG.trialMonths!=='')?+SCFG.trialMonths:3}};
+function todayIso(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Bucharest'}).format(new Date())}
+function addMonthsIso(iso,n){var p=iso.split('-').map(Number),d=new Date(Date.UTC(p[0],p[1]-1+n,1)),last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(p[2],last));return d.toISOString().slice(0,10)}
+function fmtFull(iso){var p=String(iso).split('-');return p[2]+'.'+p[1]+'.'+p[0]}
+function subCalc(d){var t=todayIso(),f=SUBF(),te=addMonthsIso(d.trial||t,f.tm),paid=d.paidUntil||'',st;
+  if(d.blocked)st='blocat';else if(paid&&paid>=t)st='activ';else if(te>=t)st='proba';else st='expirat';
+  return{status:st,trialEnd:te,paid:paid,until:(paid&&paid>te)?paid:te}}
+function clubKey(n){return String(n||'').toLowerCase().trim()}
+function subClubs(){var m={};
+  subsL.forEach(function(s){m[s.id]={key:s.id,name:s.name||s.id,d:s}});
+  var add=function(n){var k=clubKey(n);if(k&&!m[k])m[k]={key:k,name:String(n).trim(),d:null}};
+  S.schools.forEach(function(s){add(s.name)});regs.forEach(function(r){add(r.school)});frRegs.forEach(function(r){add(r.school)});
+  return Object.keys(m).map(function(k){var c=m[k];c.calc=c.d?subCalc(c.d):{status:'proba',trialEnd:null,paid:'',until:null,fresh:true};return c}).sort(function(a,b){var o={expirat:0,blocat:1,proba:2,activ:3};return (o[a.calc.status]-o[b.calc.status])||byName(a,b)})}
+var SUBCHIP={proba:['warn','probă'],activ:['good','activ'],expirat:['bad','expirat'],blocat:['bad','blocat']};
+function subBanner(){var s=mySub;if(!s)return '';var f=s.fee!=null?s.fee:10,ch=SUBCHIP[s.status]||['',''],t;
+  if(s.status==='proba')t=s.fresh||s.new?'Perioadă de probă gratuită pentru club, apoi abonament de '+f+' lei/lună.':'Perioadă de probă gratuită până la <b>'+fmtFull(s.until)+'</b>. Apoi abonamentul este de '+f+' lei/lună.';
+  else if(s.status==='activ')t='Abonament activ până la <b>'+fmtFull(s.until)+'</b>.';
+  else if(s.status==='blocat')t='Accesul clubului este suspendat. Contactează organizatorul.';
+  else t='Abonamentul a expirat la '+fmtFull(s.until)+'. Înscrierile și evaluările sunt blocate până la reînnoire ('+f+' lei/lună). Contactează organizatorul.';
+  return '<div class="card"><span class="chip '+ch[0]+'">'+ch[1]+'</span> <b>'+esc(s.name||'')+'</b><div class="small" style="margin-top:6px">'+t+'</div></div>'}
+function oAdmin(){var f=SUBF(),cl=subClubs(),n={proba:0,activ:0,expirat:0,blocat:0},inc=0,me=session&&session.user&&session.user.email||'';
+  cl.forEach(function(c){n[c.calc.status]++;if(c.d)(c.d.payments||[]).forEach(function(p){inc+=+p.amount||0})});
+  var o='<div class="card"><h3>Acces rapid</h3><div class="bar" style="margin-top:0"><button class="btn ghost" data-otab="echipe">Adaugă / elimină echipe</button><button class="btn ghost" data-otab="arbitri">Arbitri</button><button class="btn ghost" data-otab="scoli">Școli și invitații</button></div></div>';
+  o+='<div class="card"><h3>Abonamente cluburi</h3><div class="small muted" style="margin-bottom:8px">Fiecare club are '+f.tm+' luni de probă gratuită de la prima activitate, apoi abonament de '+f.fee+' lei/lună. La expirare clubul nu mai poate înscrie echipe, trimite înscrieri la amicale sau evalua turnee; urmărirea scorurilor rămâne gratuită pentru toți.</div>'+
+  '<div class="bar" style="margin:0 0 10px"><span class="chip warn">'+n.proba+' în probă</span><span class="chip good">'+n.activ+' active</span><span class="chip bad">'+n.expirat+' expirate</span>'+(n.blocat?'<span class="chip bad">'+n.blocat+' blocate</span>':'')+'<span class="chip">încasat: '+inc+' lei</span></div>'+
+  '<form data-form="scfg"><div class="grid">'+fld('sc_fee','Preț pe lună (lei)',f.fee,'number')+fld('sc_tm','Luni de probă gratuită',f.tm,'number')+'</div><div class="bar"><button class="btn sm" type="submit">Salvează setările</button></div></form></div>';
+  o+='<div class="card"><h3>Cluburi ('+cl.length+')</h3>'+(cl.length?'<div class="list">'+cl.map(function(c){var ch=SUBCHIP[c.calc.status],k=esc(c.key);
+    var txt=c.calc.fresh?'probă neînceput (începe la prima activitate)':(c.calc.status==='proba'?'probă până la '+fmtFull(c.calc.trialEnd):c.calc.status==='activ'?'plătit până la '+fmtFull(c.calc.paid):c.calc.status==='blocat'?'acces suspendat':'a expirat la '+fmtFull(c.calc.until));
+    var pays=c.d?(c.d.payments||[]):[];
+    return '<div class="item"><div><div class="nm">'+esc(c.name)+'</div><div class="small muted">'+S.teams.filter(function(t){return clubKey(t.name).indexOf(c.key)===0}).length+' echipe în turneu</div></div><div class="small"><span class="chip '+ch[0]+'">'+ch[1]+'</span> '+esc(txt)+'</div>'+
+    '<div class="acts"><button class="btn sm" data-act="sub-pay" data-id="'+k+'" data-n="1">+1 lună</button><button class="btn sm" data-act="sub-pay" data-id="'+k+'" data-n="3">+3</button><button class="btn sm" data-act="sub-pay" data-id="'+k+'" data-n="12">+12</button><button class="btn ghost sm" data-act="sub-block" data-id="'+k+'">'+(c.calc.status==='blocat'?'Deblochează':'Blochează')+'</button></div>'+
+    (pays.length?'<div class="full"><details><summary>Plăți înregistrate ('+pays.length+')</summary>'+pays.slice().reverse().map(function(p){return '<div class="small">'+fmtFull(p.at)+' · '+p.months+' '+(p.months===1?'lună':'luni')+' · '+p.amount+' lei'+(p.by?' · '+esc(p.by):'')+'</div>'}).join('')+'</details></div>':'')+'</div>'}).join('')+'</div>':'<div class="empty">Niciun club încă.</div>')+'<div class="small muted" style="margin-top:8px">Apasă „+1 lună” etc. după ce ai încasat plata (transfer, numerar). Luna se adaugă la data până la care e plătit clubul, sau de azi dacă abonamentul a expirat.</div></div>';
+  o+='<div class="card"><h3>Administratori ('+admList.length+')</h3><div class="small muted" style="margin-bottom:6px">Administratorii au acces complet. Persoana adăugată trebuie să-și creeze cont (Organizator → Creează cont) cu exact acest email.</div><div class="list">'+admList.map(function(e){return '<div class="item"><div class="nm">'+esc(e)+(e.toLowerCase()===me.toLowerCase()?' <span class="chip">tu</span>':'')+'</div><div></div><div class="acts">'+(e.toLowerCase()===me.toLowerCase()?'':'<button class="btn danger sm" data-act="adm-del" data-email="'+esc(e)+'">Elimină</button>')+'</div></div>'}).join('')+'</div>'+
+  '<form data-form="adm"><div class="grid" style="margin-top:8px">'+fld('ad_e','Email nou administrator','','email',true)+'</div><div class="bar"><button class="btn sm" type="submit">Adaugă administrator</button></div></form></div>';
+  return o}
+async function loadMySub(){if(!sb)return;try{var r=null;if(regToken){r=await sb.rpc('my_subscription',{p_token:regToken});if(r.error)r=null}if((!r||!r.data)&&frToken){r=await sb.rpc('my_subscription',{p_token:frToken});if(r.error)r=null}var d=r?r.data:null;var j=JSON.stringify(d);if(j===lastMySub)return;lastMySub=j;mySub=d||null;sched()}catch(e){}}
+async function loadAdm(){if(!sb||!canEdit)return;try{var r=await sb.rpc('admin_list');if(r.error)return;var j=JSON.stringify(r.data);if(j===lastAdm)return;lastAdm=j;admList=r.data||[];sched()}catch(e){}}
+
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKKwenB_brCKF7l44';
@@ -883,11 +932,13 @@ async function boot(){
   DB.collection('club_ratings').onSnapshot(function(s){ratings=docs(s);sched()},err);
   DB.collection('referees').onSnapshot(function(s){refs=docs(s);sched()},err);
   DB.collection('reviews').onSnapshot(function(s){revs=docs(s);sched()},err);
+  DB.doc('config/abonament').onSnapshot(function(s){SCFG=s.exists?s.data():null;sched()},err);
+  DB.collection('subscriptions').onSnapshot(function(s){subsL=docs(s).map(function(d){return d});sched()},err);
   await refreshAdmin();
   tab=valid.indexOf(h)>-1?h:(canEdit?'organizator':'live');
-  await loadMyReg();await loadFrState();await loadMyFr();await loadRev();await loadMyRev();
+  await loadMyReg();await loadFrState();await loadMyFr();await loadRev();await loadMyRev();await loadMySub();await loadAdm();
   render(true);
-  var tick=function(){if(document.hidden)return;Object.keys(subs).forEach(function(t){refresh(t)});loadMyReg();loadFrState();loadMyFr();loadRev();loadMyRev()};
+  var tick=function(){if(document.hidden)return;Object.keys(subs).forEach(function(t){refresh(t)});loadMyReg();loadFrState();loadMyFr();loadRev();loadMyRev();loadMySub();loadAdm()};
   setInterval(tick,20000);
   document.addEventListener('visibilitychange',tick);
   window.addEventListener('online',tick)}
