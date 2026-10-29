@@ -123,6 +123,7 @@ details ul{margin:10px 0 0;padding-left:18px} details li{margin-bottom:6px}
 .steps{padding-left:0;list-style:none;counter-reset:s;display:grid;gap:10px}.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 52px;position:relative}.steps li::before{content:counter(s);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 14px var(--font-display)}
 .member{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-top:22px;border-color:var(--accent);border-width:2px}.member>div:first-child{flex:1 1 320px}
 .foot{margin-top:40px;padding:22px 0 30px;border-top:2px solid var(--ink)}.foot-in{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;justify-content:space-between}.foot-brand{display:flex;gap:10px;align-items:center}.foot-nav{display:flex;flex-wrap:wrap;gap:4px 16px}.foot-nav button{background:none;border:0;padding:4px 0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.foot-c{margin-top:14px}
+.brand{width:100%}.hdr-login{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;align-self:flex-start}@media (max-width:420px){.hdr-login span{display:none}.hdr-login{padding:8px}}
 </style>
 </head>
 <body>
@@ -612,7 +613,7 @@ function render(force){
   pendingRender=false;
   if(tab==='inscriere')syncDraft();if(tab==='amicale'&&atab==='inscrie')syncFr();
   var c=cfg();
-  var o='<header class="hdr"><div class="brand"><img class="logo" src="logo.svg" alt="" width="56" height="65"><div><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></div></div></header>';
+  var o='<header class="hdr"><div class="brand"><img class="logo" src="logo.svg" alt="" width="56" height="65"><div><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></div>'+hdrBtn()+'</div></header>';
   var tabs=[['acasa','Acasă'],['live','Live: scoruri'],['inscriere','Devino membru'],['regulament','Regulament']];if(amicaleOK())tabs.splice(3,0,['amicale','Amicale']);
   if(noDb)tabs=[['regulament','Regulament']];
   var hidden={organizator:canEdit,club:!!myOrg&&!canEdit,login:!canEdit&&!myOrg};
@@ -970,6 +971,8 @@ function vAcasa(){var c=cfg(),f=SUBF(),live=S.matches.filter(function(m){return 
 function vFooter(){var c=cfg(),a=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Autentificare organizatori']);
   return '<footer class="foot"><div class="foot-in"><div class="foot-brand"><img src="logo.svg" width="28" height="33" alt=""><b>turneefotbal.ro</b></div><nav class="foot-nav" aria-label="Navigare secundară"><button data-tab="acasa">Acasă</button><button data-tab="live">Live</button><button data-tab="inscriere">Devino membru</button><button data-tab="regulament">Regulament</button></nav><div><button class="btn ghost sm" data-tab="'+a[0]+'">'+a[1]+'</button></div></div><div class="small muted foot-c">© '+new Date().getFullYear()+' turneefotbal.ro'+(c.contact?' · '+esc(c.contact):'')+'</div></footer>'}
 
+function hdrBtn(){if(noDb)return '';var b=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Autentificare']);
+  return '<button class="btn ghost sm hdr-login" data-tab="'+b[0]+'" aria-label="'+b[1]+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span>'+b[1]+'</span></button>'}
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKKwenB_brCKF7l44';
