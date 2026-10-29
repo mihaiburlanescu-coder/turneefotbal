@@ -900,7 +900,7 @@ function subClubs(){var m={};
   S.schools.forEach(function(s){add(s.name)});regs.forEach(function(r){add(r.school)});frRegs.forEach(function(r){add(r.school)});
   return Object.keys(m).map(function(k){var c=m[k];c.calc=c.d?subCalc(c.d):{status:'proba',trialEnd:null,paid:'',until:null,fresh:true};return c}).sort(function(a,b){var o={expirat:0,blocat:1,proba:2,activ:3};return (o[a.calc.status]-o[b.calc.status])||byName(a,b)})}
 var SUBCHIP={proba:['warn','probă'],activ:['good','activ'],expirat:['bad','expirat'],blocat:['bad','blocat']};
-function subBanner(x){var s=x||mySub;if(!s)return '';var f=s.fee!=null?s.fee:10,ch=SUBCHIP[s.status]||['',''],t;
+function subBanner(x){var s=x||mySub;if(!s)return '';var f=s.fee!=null?s.fee:100,ch=SUBCHIP[s.status]||['',''],t;
   if(s.status==='proba')t=s.fresh||s.new?'Perioadă de probă gratuită pentru club, apoi abonament de '+f+' lei/lună.':'Perioadă de probă gratuită până la <b>'+fmtFull(s.until)+'</b>. Apoi abonamentul este de '+f+' lei/lună.';
   else if(s.status==='activ')t='Abonament activ până la <b>'+fmtFull(s.until)+'</b>.';
   else if(s.status==='blocat')t='Accesul clubului este suspendat. Contactează organizatorul.';
