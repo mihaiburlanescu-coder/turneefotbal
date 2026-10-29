@@ -40,6 +40,7 @@ h3{font-size:19px;line-height:1.15}
 .sub-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
 .sub-tabs button{font:600 14px var(--font-body);background:none;border:0;border-bottom:3px solid transparent;padding:9px 12px;color:var(--muted);cursor:pointer;white-space:nowrap}
 .sub-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+@media (max-width:700px){.sub-tabs{flex-wrap:wrap;overflow-x:visible;gap:4px;border-bottom:0}.sub-tabs button{border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px}.sub-tabs button[aria-selected="true"]{border-color:var(--accent);background:var(--surface2)}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;min-width:0}
 .card>h3{margin-bottom:10px}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
