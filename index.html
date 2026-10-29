@@ -109,6 +109,20 @@ details ul{margin:10px 0 0;padding-left:18px} details li{margin-bottom:6px}
 .two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
 .stars{color:#e0a100;letter-spacing:1px;white-space:nowrap}.stars .off{color:var(--line)}
 .catd>summary{display:flex;align-items:center;gap:8px;list-style:none}.catd>summary::-webkit-details-marker{display:none}.catd>summary::before{content:'▸';font-size:18px;color:var(--accent);transition:transform .15s}.catd[open]>summary::before{transform:rotate(90deg)}.catd>summary>h3,.catd>summary>.bar{flex:1;margin:0}.catd[open]>summary{margin-bottom:10px}
+.home-hero{background:var(--ink);color:var(--bg);border-radius:14px;padding:28px 22px;margin-bottom:18px}
+.home-k{font-size:12px;text-transform:uppercase;letter-spacing:.12em;opacity:.7}
+.home-h{font-family:var(--font-display);font-size:clamp(30px,6vw,46px);line-height:1.02;margin:8px 0 12px;max-width:18em;text-transform:none}
+.home-p{margin:0 0 6px;max-width:40em;opacity:.88;font-size:16px}
+.home-hero .btn{background:var(--accent-ink);color:var(--ink);border-color:var(--accent-ink)}.home-hero .btn.ghost{background:transparent;color:var(--bg);border-color:var(--bg)}
+.btn.lg{font-size:16px;padding:11px 20px}
+.kicker{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.facts span{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.facts b{font-size:17px}
+.sec{margin:26px 0 12px;font-size:26px}
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.feat .card{margin:0}.feat p{margin:6px 0 0;color:var(--muted)}
+.fi{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 16px var(--font-display);margin-bottom:8px}
+.steps{padding-left:0;list-style:none;counter-reset:s;display:grid;gap:10px}.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 52px;position:relative}.steps li::before{content:counter(s);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 14px var(--font-display)}
+.member{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-top:22px;border-color:var(--accent);border-width:2px}.member>div:first-child{flex:1 1 320px}
+.foot{margin-top:40px;padding:22px 0 30px;border-top:2px solid var(--ink)}.foot-in{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;justify-content:space-between}.foot-brand{display:flex;gap:10px;align-items:center}.foot-nav{display:flex;flex-wrap:wrap;gap:4px 16px}.foot-nav button{background:none;border:0;padding:4px 0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:underline;text-underline-offset:3px}.foot-c{margin-top:14px}
 </style>
 </head>
 <body>
@@ -124,7 +138,7 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){r
 var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)};
 var S={cfg:null,schools:[],teams:[],matches:[],fr:[],acfg:null};
 var DEF={name:'Cupa Mini-Fotbal',date:'',location:'',contact:'',fee:'',appLink:'https://turneefotbal.ro',fields:2,matchMin:15,breakMin:5,rest:1,start:'09:00',maxGroup:4,qualify:2,categories:'U10, U11, U12, U13, U14, U15, U16, U17, U18, U19, U20, U21, U22',catYears:'',regText:'',pw:3,pd:1};
-var FRS=null,frRegs=[],frMine=[],frToken='',atab='program',frWeekSel='',frCat='',frDraft=null,frDirty=false,frErr=[],aotab='reg',lastFr='',lastFrS='',DB=null,sb=null,session=null,regToken='',authMsg='',loginEmail='',recovery=false,lastMy='',noDb=false,canEdit=false,regs=[],myReg=null,regDraft=null,regDirty=false,regErrors=[],rejOpen=null,tab='live',otab='inscrieri',pcat='',search='',editSchool=null,inviteOpen=null,elimOpen=null,armed=null,busy=false,pendingRender=false;
+var FRS=null,frRegs=[],frMine=[],frToken='',atab='program',frWeekSel='',frCat='',frDraft=null,frDirty=false,frErr=[],aotab='reg',lastFr='',lastFrS='',DB=null,sb=null,session=null,regToken='',authMsg='',loginEmail='',recovery=false,lastMy='',noDb=false,canEdit=false,regs=[],myReg=null,regDraft=null,regDirty=false,regErrors=[],rejOpen=null,tab='acasa',otab='inscrieri',pcat='',search='',editSchool=null,inviteOpen=null,elimOpen=null,armed=null,busy=false,pendingRender=false;
 var cfg=function(){return Object.assign({},DEF,S.cfg||{})};
 var cats=function(){return cfg().categories.split(',').map(function(s){return s.trim()}).filter(Boolean)};
 var T=function(){var o={};S.teams.forEach(function(t){o[t.id]=t});return o};
@@ -296,7 +310,7 @@ function validateReg(d){var errs=[],teams=[];
   return{errs:errs,teams:teams}}
 function regText(d){var t=['ÎNSCRIERE '+cfg().name,'Școala: '+d.school,'Localitate: '+d.city,'Contact: '+[d.person,d.email,d.phone].filter(Boolean).join(', '),''];
   d.teams.forEach(function(x,i){t.push('Echipa '+(i+1)+': '+x.cat+(x.suf?' '+x.suf:''));x.players.forEach(function(p){t.push('  '+p.n+', '+p.y)})});t.push('','Declar că am citit și accept regulamentul turneului.');return t.join('\n')}
-function vInscriere(){var c=cfg(),o='<h2 style="margin-bottom:12px">Înscrierea școlii</h2>'+subBanner();
+function vInscriere(){var c=cfg(),o='<h2 style="margin-bottom:12px">Devino membru</h2>'+subBanner();
   if(myReg&&myReg.status==='aprobata')
     return o+'<div class="card"><h3>'+esc(myReg.school)+' <span class="chip good">înscriere aprobată</span></h3><div class="list">'+(myReg.teams||[]).map(function(t){return '<div class="item"><div class="nm">'+esc(myReg.school+(t.suf?' '+t.suf:''))+'</div><div>'+esc(t.cat)+'</div><div class="small muted">'+(t.players||[]).length+' jucători în lot</div></div>'}).join('')+'</div><p class="small muted" style="margin-bottom:0">Pentru modificări, contactează organizatorul.'+(c.contact?' '+esc(c.contact):'')+'</p></div>'+revCard()+liveFooter();
   if(!regDraft)resetDraft();var d=regDraft;
@@ -599,10 +613,13 @@ function render(force){
   if(tab==='inscriere')syncDraft();if(tab==='amicale'&&atab==='inscrie')syncFr();
   var c=cfg();
   var o='<header class="hdr"><div class="brand"><img class="logo" src="logo.svg" alt="" width="56" height="65"><div><h1>'+esc(c.name)+'</h1><div class="sub">'+(c.date?'<span>'+esc(c.date)+'</span>':'')+(c.location?'<span>'+esc(c.location)+'</span>':'')+'<span>'+cats().join(' · ')+'</span>'+(c.fee?'<span>Taxă: '+esc(c.fee)+'</span>':'')+'</div></div></div></header>';
-  var tabs=[['live','Live: scoruri și clasament'],['inscriere','Înscriere școală'],['regulament','Regulament']];if(amicaleOK())tabs.splice(2,0,['amicale','Amicale']);if(canEdit)tabs.unshift(['organizator','Administrator']);else if(myOrg)tabs.unshift(['club','Clubul meu']);else tabs.push(['login','Organizator']);if(noDb)tabs=[['regulament','Regulament']];
-  if(!tabs.some(function(t){return t[0]===tab}))tab=tabs[0][0];
+  var tabs=[['acasa','Acasă'],['live','Live: scoruri'],['inscriere','Devino membru'],['regulament','Regulament']];if(amicaleOK())tabs.splice(3,0,['amicale','Amicale']);
+  if(noDb)tabs=[['regulament','Regulament']];
+  var hidden={organizator:canEdit,club:!!myOrg&&!canEdit,login:!canEdit&&!myOrg};
+  if(!tabs.some(function(t){return t[0]===tab})&&!hidden[tab])tab=tabs[0][0];
   o+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</nav>';
-  o+=({organizator:vOrg,club:vClub,inscriere:vInscriere,amicale:vAmicale,live:vLive,regulament:vRegulament,login:vLogin}[tab])();
+  o+=({acasa:vAcasa,organizator:vOrg,club:vClub,inscriere:vInscriere,amicale:vAmicale,live:vLive,regulament:vRegulament,login:vLogin}[tab])();
+  if(!noDb)o+=vFooter();
   var sy=window.scrollY;$('#app').innerHTML=o;foldCats();window.scrollTo(0,sy)}
 var rt;function sched(){clearTimeout(rt);rt=setTimeout(function(){render(false)},60)}
 document.addEventListener('focusout',function(){if(pendingRender)setTimeout(function(){if(pendingRender)render(false)},250)});
@@ -779,7 +796,7 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
     var d2={name:g('c_name').trim()||DEF.name,date:g('c_date').trim(),location:g('c_loc').trim(),contact:g('c_contact').trim(),fee:g('c_fee').trim(),appLink:g('c_link').trim(),categories:g('c_cats').trim()||DEF.categories,catYears:g('c_years').trim(),regText:g('c_reg').trim(),fields:n('c_fields',2,1),start:g('c_start')||'09:00',matchMin:n('c_mm',15,1),breakMin:n('c_bm',5,0),rest:n('c_rest',1,0),maxGroup:n('c_mg',4,2),qualify:n('c_q',2,1),pw:n('c_pw',3,0),pd:n('c_pd',1,0)};
     guard(function(){return DB.doc('config/main').set(d2).then(function(){return 'Setările au fost salvate'})})()}
 });
-window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['organizator','club','inscriere','amicale','live','regulament','login'].indexOf(h)>-1){tab=h;render(true)}});
+window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['acasa','organizator','club','inscriere','amicale','live','regulament','login'].indexOf(h)>-1){tab=h;render(true)}});
 
 /* ---------- arbitri, stele pentru cluburi, review-uri ---------- */
 var openCats={};
@@ -934,6 +951,25 @@ async function loadOrg(){var prev=JSON.stringify(myOrg);
   if(myOrg){frToken='org';clubDraft=null;Object.keys(subs).forEach(function(t){refresh(t)});if(tab==='login')tab='club';loadClub();loadMyFr()}
   else{clubDraft=null;if(tab==='club'||(tab==='amicale'&&!amicaleOK()))tab='live'}
   render(true)}
+/* ---------- pagina de start și subsol ---------- */
+function vAcasa(){var c=cfg(),f=SUBF(),live=S.matches.filter(function(m){return m.st==='live'}).sort(sortM),fin=S.matches.filter(function(m){return m.st==='fin'}).slice(-4).reverse(),id=teamSel();
+  var o='<section class="home-hero"><div class="home-k">Turnee de fotbal pentru copii</div><h2 class="home-h">Competiții corecte, pe categorii de vârstă, urmărite live de părinți.</h2><p class="home-p">Școlile și cluburile se înscriu online, organizatorii generează grupele și programul, iar antrenorii și părinții urmăresc scorurile și clasamentele în timp real, de pe telefon.</p><div class="bar"><button class="btn lg" data-tab="inscriere">Devino membru</button><button class="btn ghost lg" data-tab="live">Vezi scorurile live</button></div></section>';
+  o+='<section class="card"><div class="kicker">Următorul turneu</div><h3 style="font-size:26px;margin:2px 0 8px">'+esc(c.name)+'</h3><div class="facts">'+(c.date?'<div><span>Data</span><b>'+esc(c.date)+'</b></div>':'')+(c.location?'<div><span>Locația</span><b>'+esc(c.location)+'</b></div>':'')+'<div><span>Categorii</span><b>'+esc(cats().length>4?cats()[0]+' – '+cats()[cats().length-1]:cats().join(', '))+'</b></div><div><span>Echipe înscrise</span><b>'+S.teams.filter(function(t){return t.st!=='elim'}).length+'</b></div></div></section>';
+  o+='<h2 class="sec">Live acum</h2>';
+  if(live.length)o+='<div class="card">'+live.map(function(m){return mcard(m,id)}).join('')+'</div>';
+  else if(fin.length)o+='<div class="card"><h3>Ultimele rezultate</h3>'+fin.map(function(m){return mcard(m,id)}).join('')+'</div>';
+  else o+='<div class="empty" style="margin-bottom:16px">Niciun meci în desfășurare. Programul și scorurile apar aici în ziua turneului.</div>';
+  o+='<div class="bar" style="margin:-4px 0 8px"><button class="btn ghost" data-tab="live">Program, clasamente și echipa ta</button></div>';
+  var F=[['Înscriere online','Școala trimite echipele și lotul nominal, iar organizatorul le aprobă într-un singur loc.'],['Vârsta copiilor, verificată','Anul nașterii fiecărui jucător este validat pe categorie, iar organizatorul poate face verificări prin sondaj.'],['Grupe și program automate','Aplicația împarte echipele în grupe, programează meciurile pe terenuri și generează fazele eliminatorii.'],['Scoruri și clasamente live','Părinții și antrenorii văd rezultatele în timp real și își urmăresc echipa direct pe telefon.'],['Meciuri amicale','Echipele membre se înscriu săptămânal pe categorii de vârstă și sunt programate automat, în funcție de disponibilitate.'],['Fair-play și evaluări','Cluburile primesc stele pentru fair-play, iar turneele sunt evaluate de cluburile participante.']];
+  o+='<h2 class="sec">Ce face aplicația</h2><div class="feat">'+F.map(function(x,i){return '<div class="card"><div class="fi">'+(i+1)+'</div><h3>'+x[0]+'</h3><p>'+x[1]+'</p></div>'}).join('')+'</div>';
+  o+='<h2 class="sec">Cum funcționează</h2><ol class="steps"><li><b>Devii membru.</b> Completezi datele școlii sau clubului tău.</li><li><b>Îți înscrii echipele.</b> Alegi categoria și trimiți lotul. Organizatorul aprobă înscrierea.</li><li><b>Joci și urmărești live.</b> Programul, scorurile și clasamentele sunt în aplicație.</li></ol>';
+  o+='<section class="card member"><div><div class="kicker">Membri</div><h3 style="font-size:24px;margin:2px 0 6px">Primele '+f.tm+' luni sunt gratuite</h3><p style="margin:0">Apoi abonamentul este de <b>'+f.fee+' lei pe lună</b> și include înscrierea echipelor, meciurile amicale și evaluările. Urmărirea scorurilor rămâne gratuită pentru toată lumea.</p></div><div><button class="btn lg" data-tab="inscriere">Devino membru</button></div></section>';
+  var cs=clubStars().slice(0,5);
+  if(cs.length)o+='<h2 class="sec">Cluburi cu cele mai multe stele</h2><div class="card"><div class="list">'+cs.map(function(x){return '<div class="item"><div class="nm">'+esc(x.name)+'</div><div>'+starTxt(x.avg)+' <b>'+x.avg.toFixed(1)+'</b></div><div class="small muted">'+x.n+(x.n===1?' turneu':' turnee')+'</div></div>'}).join('')+'</div></div>';
+  return o}
+function vFooter(){var c=cfg(),a=canEdit?['organizator','Administrare']:(myOrg?['club','Clubul meu']:['login','Autentificare organizatori']);
+  return '<footer class="foot"><div class="foot-in"><div class="foot-brand"><img src="logo.svg" width="28" height="33" alt=""><b>turneefotbal.ro</b></div><nav class="foot-nav" aria-label="Navigare secundară"><button data-tab="acasa">Acasă</button><button data-tab="live">Live</button><button data-tab="inscriere">Devino membru</button><button data-tab="regulament">Regulament</button></nav><div><button class="btn ghost sm" data-tab="'+a[0]+'">'+a[1]+'</button></div></div><div class="small muted foot-c">© '+new Date().getFullYear()+' turneefotbal.ro'+(c.contact?' · '+esc(c.contact):'')+'</div></footer>'}
+
 /* ---------- date: Supabase (cheia este publică; accesul îl hotărăsc regulile din baza de date) ---------- */
 var SB_URL='https://lyhixvxaaxiwfwhbdylq.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGl4dnhhYXhpd2Z3aGJkeWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODg0NzQsImV4cCI6MjEwODc2NDQ3NH0.vNitis8AHVR-v3WUC2PDi5JrxqyKKwenB_brCKF7l44';
@@ -961,7 +997,7 @@ function makeDB(){return{
 /* ---------- pornire ---------- */
 async function boot(){
   var h=(location.hash||'').replace('#','');
-  var valid=['organizator','club','inscriere','amicale','live','regulament','login'];
+  var valid=['acasa','organizator','club','inscriere','amicale','live','regulament','login'];
   if(!(window.supabase&&window.supabase.createClient)){noDb=true;tab='regulament';render(true);return}
   try{sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})}catch(e){noDb=true;tab='regulament';render(true);return}
   DB=makeDB();
@@ -985,7 +1021,7 @@ async function boot(){
   DB.collection('club_orgs').onSnapshot(function(s){orgsL=docs(s);sched()},err);
   DB.collection('subscriptions').onSnapshot(function(s){subsL=docs(s).map(function(d){return d});sched()},err);
   await refreshAdmin();
-  tab=valid.indexOf(h)>-1?h:(canEdit?'organizator':'live');
+  tab=valid.indexOf(h)>-1?h:'acasa';
   await loadMyReg();await loadFrState();await loadMyFr();await loadRev();await loadMyRev();await loadMySub();await loadAdm();
   render(true);
   var tick=function(){if(document.hidden)return;Object.keys(subs).forEach(function(t){refresh(t)});loadMyReg();loadFrState();loadMyFr();loadRev();loadMyRev();loadMySub();loadAdm();loadOrg()};
