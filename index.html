@@ -122,7 +122,7 @@ var $=function(s,r){return (r||document).querySelector(s)};
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)};
 var S={cfg:null,schools:[],teams:[],matches:[],fr:[],acfg:null};
-var DEF={name:'Cupa Mini-Fotbal',date:'',location:'',contact:'',fee:'',appLink:'https://turneefotbal.ro',fields:2,matchMin:15,breakMin:5,rest:1,start:'09:00',maxGroup:4,qualify:2,categories:'U8, U10, U12',catYears:'',regText:'',pw:3,pd:1};
+var DEF={name:'Cupa Mini-Fotbal',date:'',location:'',contact:'',fee:'',appLink:'https://turneefotbal.ro',fields:2,matchMin:15,breakMin:5,rest:1,start:'09:00',maxGroup:4,qualify:2,categories:'U10, U11, U12, U13, U14, U15, U16, U17, U18, U19, U20, U21, U22',catYears:'',regText:'',pw:3,pd:1};
 var FRS=null,frRegs=[],frMine=[],frToken='',atab='program',frWeekSel='',frCat='',frDraft=null,frDirty=false,frErr=[],aotab='reg',lastFr='',lastFrS='',DB=null,sb=null,session=null,regToken='',authMsg='',loginEmail='',recovery=false,lastMy='',noDb=false,canEdit=false,regs=[],myReg=null,regDraft=null,regDirty=false,regErrors=[],rejOpen=null,tab='live',otab='inscrieri',pcat='',search='',editSchool=null,inviteOpen=null,elimOpen=null,armed=null,busy=false,pendingRender=false;
 var cfg=function(){return Object.assign({},DEF,S.cfg||{})};
 var cats=function(){return cfg().categories.split(',').map(function(s){return s.trim()}).filter(Boolean)};
