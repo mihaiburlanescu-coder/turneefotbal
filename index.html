@@ -353,19 +353,23 @@ function vOrg(){var np=regs.filter(function(r){return r.status==='noua'}).length
 
 function schoolStatus(s){var n=S.teams.filter(function(t){return t.school===s.id}).length;return n?'<span class="chip good">înscrisă · '+n+' echipe</span>':(s.invited?'<span class="chip warn">invitată</span>':'<span class="chip">nouă</span>')}
 function oScoli(){var q=search.toLowerCase();var ls=S.schools.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ro')});
-  var es=editSchool?S.schools.filter(function(s){return s.id===editSchool})[0]:null;es=es||{};
+  var es=editSchool?S.schools.filter(function(s){return s.id===editSchool})[0]:null;es=es||{};if(sgFields)es=Object.assign({},es,sgFields);
   var o='<div class="card"><h3>'+(es.id?'Editează școala':'Adaugă o școală de fotbal')+'</h3><form data-form="school"><div class="grid">'+
-  fld('sn','Denumire',es.name,'text',true)+fld('sc','Localitate',es.city)+fld('sp','Persoană de contact',es.person)+fld('se','Email',es.email,'email')+fld('st','Telefon',es.phone,'tel')+'</div>'+
+  fld('sn','Denumire',es.name,'text',true)+fld('sc','Localitate',es.city)+fld('sp','Persoană de contact',es.person)+fld('se','Email',es.email,'email')+fld('st','Telefon',es.phone,'tel')+'</div>'+sgForm(es)+
   '<div class="bar"><button class="btn" type="submit">'+(es.id?'Salvează modificările':'Adaugă școala')+'</button>'+(es.id?'<button class="btn ghost" type="button" data-act="cancel-school">Renunță</button>':'')+'</div></form></div>';
   o+='<div class="card"><h3>Importă o listă</h3><div class="small muted" style="margin-bottom:8px">Câte o școală pe rând: denumire ; localitate ; persoană ; email ; telefon. Poți lipi direct din Excel.</div><textarea id="imp" placeholder="ACS Viitorul ; Pitești ; Ion Popescu ; ion@exemplu.ro ; 0722 000 000"></textarea><div class="bar"><button class="btn" data-act="import">Importă</button></div></div>';
-  var shown=ls.filter(function(s){return !q||(s.name+' '+(s.city||'')+' '+(s.person||'')+' '+(s.email||'')).toLowerCase().indexOf(q)>-1});
+  var shown=ls.filter(function(s){return !q||(s.name+' '+(s.city||'')+' '+(s.person||'')+' '+(s.email||'')+' '+(s.groups||[]).map(function(g){return g.g+' '+g.coach+' '+g.phone}).join(' ')).toLowerCase().indexOf(q)>-1});
   o+='<div class="card"><h3>Școli în baza de date ('+ls.length+')</h3><div class="grid"><div><label for="srch">Caută</label><input id="srch" value="'+esc(search)+'" placeholder="nume, localitate, email"></div></div>'+
   '<div class="bar"><button class="btn ghost sm" data-act="copy-emails">Copiază emailurile școlilor neinvitate</button><button class="btn ghost sm" data-act="copy-phones">Copiază telefoanele școlilor neinvitate</button></div><div class="list" id="slist" style="margin-top:8px">'+schoolList(shown)+'</div></div>';
   return o}
+function sgForm(es){if(sgDraft===null)sgDraft=(es.groups||[]).map(function(g){return{g:g.g,coach:g.coach||'',phone:g.phone||''}});
+  return '<div style="margin-top:14px"><label>Grupe și antrenori</label><div class="small muted" style="margin:2px 0 8px">Adaugă fiecare grupă a școlii (categoria U sau anul nașterii), cu antrenorul și telefonul lui.</div>'+
+  sgDraft.map(function(g,i){return '<div class="sgrow grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end;margin-bottom:8px"><div><span class="small muted">Grupa</span><select class="sg-g" aria-label="Grupa">'+grpOpts(g.g)+'</select></div><div><span class="small muted">Antrenor</span><input class="sg-c" aria-label="Antrenor" value="'+esc(g.coach)+'"></div><div><span class="small muted">Telefon antrenor</span><input class="sg-p" type="tel" aria-label="Telefon antrenor" value="'+esc(g.phone)+'"></div><div><button class="btn danger sm" type="button" data-act="grp-rm" data-i="'+i+'">Șterge grupa</button></div></div>'}).join('')+
+  '<button class="btn ghost sm" type="button" data-act="grp-add">+ Adaugă grupă</button></div>'}
 function fld(id,l,v,type,req){return '<div><label for="'+id+'">'+l+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(v||'')+'"'+(req?' required':'')+'></div>'}
 function schoolList(ls){if(!ls.length)return '<div class="empty">Nicio școală. Adaugă prima școală sau importă o listă.</div>';
   return ls.map(function(s){var inv=inviteOpen===s.id;
-    var h='<div class="item"><div><div class="nm">'+esc(s.name)+(s.ex?' <span class="chip">exemplu</span>':'')+'</div><div class="small muted">'+esc([s.city,s.person].filter(Boolean).join(' · '))+'</div></div>'+
+    var h='<div class="item"><div><div class="nm">'+esc(s.name)+(s.ex?' <span class="chip">exemplu</span>':'')+'</div><div class="small muted">'+esc([s.city,s.person].filter(Boolean).join(' · '))+'</div>'+((s.groups||[]).length?'<div class="small" style="margin-top:4px">'+s.groups.map(function(g){return '<div><span class="chip">'+esc(g.g)+'</span> '+esc(g.coach||'—')+(g.phone?' · <button class="copy" data-act="copy" data-txt="'+esc(g.phone)+'">'+esc(g.phone)+'</button>':'')+'</div>'}).join('')+'</div>':'')+'</div>'+
     '<div class="small">'+(s.email?'<button class="copy" data-act="copy" data-txt="'+esc(s.email)+'">'+esc(s.email)+'</button><br>':'')+(s.phone?'<button class="copy" data-act="copy" data-txt="'+esc(s.phone)+'">'+esc(s.phone)+'</button><br>':'')+schoolStatus(s)+'</div>'+
     '<div class="acts"><button class="btn sm" data-act="invite" data-id="'+s.id+'">Invită</button><button class="btn ghost sm" data-act="edit-school" data-id="'+s.id+'">Editează</button><button class="btn danger sm" data-act="del-school" data-id="'+s.id+'">Șterge</button></div>';
     if(inv){var msg=inviteMsg(s),ph=phoneDigits(s.phone);
@@ -615,8 +619,10 @@ app.addEventListener('click',function(e){
   var a=t.dataset.act,id=t.dataset.id;
   if(a==='copy'){copy(t.dataset.txt);return}
   if(a==='invite'){inviteOpen=inviteOpen===id?null:id;render(true);return}
-  if(a==='edit-school'){editSchool=id;render(true);window.scrollTo({top:0,behavior:'smooth'});return}
-  if(a==='cancel-school'){editSchool=null;render(true);return}
+  if(a==='grp-add'){syncSg();sgDraft.push({g:cats()[0]||'',coach:'',phone:''});render(true);return}
+  if(a==='grp-rm'){syncSg();sgDraft.splice(+t.dataset.i,1);render(true);return}
+  if(a==='edit-school'){sgDraft=null;sgFields=null;editSchool=id;render(true);window.scrollTo({top:0,behavior:'smooth'});return}
+  if(a==='cancel-school'){sgDraft=null;sgFields=null;editSchool=null;render(true);return}
   if(a==='elim-open'){elimOpen=id;render(true);return}
   if(a==='elim-cancel'){elimOpen=null;render(true);return}
   if(a==='reg-add'){syncDraft();if(!regDraft)resetDraft();regDraft.teams.push({id:uid(),cat:cats()[0]||'',suf:'',pl:''});regDirty=true;render(true);return}
@@ -716,7 +722,7 @@ app.addEventListener('change',function(e){var t=e.target;
   if(t.id&&t.id.indexOf('rt_cat')===0){syncDraft();regDirty=true;render(true);return}
   if(t.id==='catsel'){pcat=t.value;render(true);return}
   if(t.dataset&&t.dataset.chg){var r=t.closest('.mrow');var d={};d[t.dataset.chg]=t.dataset.chg==='field'?+t.value:t.value;guard(function(){return DB.doc('matches/'+r.dataset.mid).update(d)})()}});
-app.addEventListener('input',function(e){if(tab==='inscriere')regDirty=true;if(tab==='amicale')frDirty=true;if(e.target.id==='srch'){search=e.target.value;var q=search.toLowerCase();var ls=S.schools.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ro')}).filter(function(s){return !q||(s.name+' '+(s.city||'')+' '+(s.person||'')+' '+(s.email||'')).toLowerCase().indexOf(q)>-1});$('#slist').innerHTML=schoolList(ls)}});
+app.addEventListener('input',function(e){if(tab==='inscriere')regDirty=true;if(tab==='amicale')frDirty=true;if(e.target.id==='srch'){search=e.target.value;var q=search.toLowerCase();var ls=S.schools.slice().sort(function(a,b){return a.name.localeCompare(b.name,'ro')}).filter(function(s){return !q||(s.name+' '+(s.city||'')+' '+(s.person||'')+' '+(s.email||'')+' '+(s.groups||[]).map(function(g){return g.g+' '+g.coach+' '+g.phone}).join(' ')).toLowerCase().indexOf(q)>-1});$('#slist').innerHTML=schoolList(ls)}});
 app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.dataset.form,g=function(id){return ($('#'+id)||{}).value||''};
   if(f==='ref'){var kc=[];cats().forEach(function(c,i){if(($('#rf_k'+i)||{}).checked)kc.push(c)});var rnm=g('rf_n').trim();if(!rnm)return;
     var old=refEdit?refs.filter(function(x){return x.id===refEdit})[0]:null,rid=refEdit||uid();
@@ -746,7 +752,7 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
     DAYS.forEach(function(k){dys[k]={on:!!($('#a_on_'+k)||{}).checked,from:g('a_from_'+k)||ADEF.days[k].from,to:g('a_to_'+k)||ADEF.days[k].to}});
     var ad={open:g('a_open')!=='0',dday:n2('a_dday',4,1),dhour:g('a_dhour')||'18:00',fields:n2('a_fields',2,1),matchMin:n2('a_mm',40,5),breakMin:n2('a_bm',10,0),maxPer:n2('a_max',1,1),mode:g('a_mode')==='fit'?'fit':'order',place:g('a_place').trim(),days:dys};
     guard(function(){return DB.doc('config/amicale').set(ad).then(function(){lastFrS='';loadFrState();return 'Setările amicalelor au fost salvate'})})();return}
-  if(f==='school'){var d={name:g('sn').trim(),city:g('sc').trim(),person:g('sp').trim(),email:g('se').trim(),phone:g('st').trim()};if(!d.name)return;
+  if(f==='school'){var d={name:g('sn').trim(),city:g('sc').trim(),person:g('sp').trim(),email:g('se').trim(),phone:g('st').trim()};if(!d.name)return;syncSg();d.groups=(sgDraft||[]).filter(function(g){return g.g&&(g.coach||g.phone)});sgDraft=null;sgFields=null;
     guard(function(){if(editSchool){var id=editSchool;editSchool=null;return DB.doc('schools/'+id).update(d).then(function(){return 'Școala a fost actualizată'})}d.invited=false;d.at=Date.now();return DB.doc('schools/'+uid()).set(d).then(function(){return 'Școala a fost adăugată'})})()}
   if(f==='team'){var sc=S.schools.filter(function(s){return s.id===g('t_school')})[0];if(!sc)return;var suf=g('t_suf').trim();
     guard(function(){return DB.doc('teams/'+uid()).set({name:sc.name+(suf?' '+suf:''),school:sc.id,cat:g('t_cat'),st:'ok',at:Date.now()}).then(function(){return 'Echipa a fost înscrisă'})})()}
@@ -769,6 +775,9 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
 window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['organizator','inscriere','amicale','live','regulament','login'].indexOf(h)>-1){tab=h;render(true)}});
 
 /* ---------- arbitri, stele pentru cluburi, review-uri ---------- */
+var sgDraft=null,sgFields=null;
+function grpOpts(sel){var o=cats().slice();for(var y=2022;y>=2008;y--)o.push('Născuți '+y);if(sel&&o.indexOf(sel)<0)o.unshift(sel);return o.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function syncSg(){if(tab!=='organizator'||otab!=='scoli')return;var gv=function(i){return ($('#'+i)||{}).value||''};sgFields={name:gv('sn'),city:gv('sc'),person:gv('sp'),email:gv('se'),phone:gv('st')};var rows=document.querySelectorAll('.sgrow');sgDraft=Array.prototype.map.call(rows,function(r){return{g:r.querySelector('.sg-g').value,coach:r.querySelector('.sg-c').value.trim(),phone:r.querySelector('.sg-p').value.trim()}})}
 var refs=[],ratings=[],revs=[],revSum=[],revCom=[],myRev=null,RCFG=null,refEdit=null,lastRev='',lastMyRev='';
 var RCRIT=[['org','Organizare generală',true],['prog','Program și respectarea orelor'],['teren','Terenuri și facilități'],['comm','Comunicare cu organizatorii'],['arb','Arbitraj']];
 var SCRIT=[['fair','Fair-play'],['punct','Punctualitate'],['age','Respectarea vârstelor'],['supp','Comportamentul suporterilor']];
