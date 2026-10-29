@@ -108,6 +108,7 @@ details ul{margin:10px 0 0;padding-left:18px} details li{margin-bottom:6px}
 .sel{max-width:420px}
 .two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
 .stars{color:#e0a100;letter-spacing:1px;white-space:nowrap}.stars .off{color:var(--line)}
+.catd>summary{display:flex;align-items:center;gap:8px;list-style:none}.catd>summary::-webkit-details-marker{display:none}.catd>summary::before{content:'▸';font-size:18px;color:var(--accent);transition:transform .15s}.catd[open]>summary::before{transform:rotate(90deg)}.catd>summary>h3,.catd>summary>.bar{flex:1;margin:0}.catd[open]>summary{margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -392,7 +393,7 @@ function oEchipe(){var ls=S.schools.slice().sort(function(a,b){return a.name.loc
   var o='<div class="card"><h3>Înscrie o echipă</h3>'+'<form data-form="team"><div class="grid"><div><label for="t_school">Școala (scrie numele sau alege din listă)</label><input id="t_school" list="schlist" autocomplete="off" placeholder="Începe să scrii…" required><datalist id="schlist">'+ls.map(function(s){return '<option value="'+esc(s.name)+'">'}).join('')+'</datalist></div>'+
   '<div><label for="t_cat">Grupa / categoria</label><select id="t_cat">'+cats().map(function(c){return '<option>'+esc(c)+'</option>'}).join('')+'</select></div>'+fld('t_suf','Nume suplimentar (ex. roșu, A)')+fld('t_coach','Antrenor (opțional)')+fld('t_cph','Telefon antrenor','','tel')+'</div><div class="small muted" style="margin-top:6px">Dacă școala nu există în listă, este adăugată automat. Antrenorul se salvează și în grupele școlii.</div><div class="bar"><button class="btn" type="submit">Înscrie echipa</button></div></form></div>';
   o+=cats().map(function(cat){var ts=S.teams.filter(function(t){return t.cat===cat}).sort(function(a,b){return a.name.localeCompare(b.name,'ro')});
-    return '<div class="card"><h3>'+esc(cat)+' · '+ts.length+' echipe</h3>'+(ts.length?'<div class="list">'+ts.map(function(t){var op=elimOpen===t.id;
+    return '<div class="card" data-cc="e:'+esc(cat)+'"><h3>'+esc(cat)+' · '+ts.length+' echipe</h3>'+(ts.length?'<div class="list">'+ts.map(function(t){var op=elimOpen===t.id;
       return '<div class="item"><div class="nm">'+esc(t.name)+(t.ex?' <span class="chip">exemplu</span>':'')+(t.coach?'<div class="small muted">Antrenor: '+esc(t.coach)+(t.coachPhone?' · '+esc(t.coachPhone):'')+'</div>':'')+'</div><div>'+(t.st==='elim'?'<span class="chip bad">eliminată</span> <span class="small muted">'+esc(t.reason||'')+'</span>':'<span class="chip good">activă</span>')+'</div>'+
       '<div class="acts">'+(t.st==='elim'?'<button class="btn ghost sm" data-act="reinstate" data-id="'+t.id+'">Reactivează</button>':'<button class="btn danger sm" data-act="elim-open" data-id="'+t.id+'">Elimină (vârstă)</button>')+'<button class="btn danger sm" data-act="del-team" data-id="'+t.id+'">Șterge</button></div>'+
       (op?'<div class="full"><label for="elr">Motivul eliminării</label><input id="elr" value="Jucător în afara categoriei de vârstă"><div class="bar"><button class="btn danger sm" data-act="elim-go" data-id="'+t.id+'">Confirmă eliminarea</button><button class="btn ghost sm" data-act="elim-cancel">Renunță</button></div><div class="small muted" style="margin-top:6px">Meciurile echipei se socotesc 3–0 pentru adversari, iar clasamentele se recalculează.</div></div>':'')+'</div>'}).join('')+'</div>':'<div class="empty">Nicio echipă înscrisă.</div>')+'</div>'}).join('');
@@ -514,7 +515,7 @@ function vFrProgram(){var c=acfg(),cur=frWeek(),weeks={};weeks[cur]=1;S.fr.forEa
   if(!ms.length){o+='<div class="empty">'+(frWeekSel===cur?(frOpenNow()?'Înscrierile sunt deschise până '+esc(frDeadlineTxt())+'. Programul se publică după închiderea lor.':'Programul weekendului nu este încă publicat.'):'Nu există meciuri în această săptămână.')+'</div>';return o}
   var last='';
   frCats().forEach(function(cat){var cm=ms.filter(function(m){return m.cat===cat});if(!cm.length)return;
-    o+='<div class="card"><h3>'+esc(cat)+'</h3>';last='';cm.forEach(function(m){var h=DAYN[m.day]+' '+fmtDate(m.date);if(h!==last){o+='<div class="small muted" style="margin:10px 0 6px;font-weight:600">'+h+'</div>';last=h}o+=frCard(m,mine)});o+='</div>'});
+    o+='<div class="card" data-cc="p:'+esc(cat)+'"><h3>'+esc(cat)+'</h3>';last='';cm.forEach(function(m){var h=DAYN[m.day]+' '+fmtDate(m.date);if(h!==last){o+='<div class="small muted" style="margin:10px 0 6px;font-weight:600">'+h+'</div>';last=h}o+=frCard(m,mine)});o+='</div>'});
   return o}
 function frDraftNew(){var last={};try{last=JSON.parse(localStorage.getItem('tf-fr-last')||'{}')}catch(e){}var c=acfg(),av={};DAYS.forEach(function(d){av[d]={on:!!c.days[d].on&&d!=='fri',from:c.days[d].from,to:c.days[d].to}});
   frDraft={id:'',school:last.school||'',suf:'',cat:cats()[0]||'',person:last.person||'',email:last.email||'',phone:last.phone||'',max:1,av:av,accept:false}}
@@ -559,7 +560,7 @@ function oFrReg(){var c=acfg(),week=frWeek(),regsW=frRegs.filter(function(r){ret
     '<div class="small muted" style="margin-top:8px">„Programează echipele rămase” păstrează meciurile deja stabilite și le adaugă doar pe cele noi. „Regenerează” reface programul de la zero (meciurile live sau încheiate rămân).</div></div>';
   if(!regsW.length)return o+'<div class="empty">Nicio înscriere în această săptămână.</div>';
   frCats().forEach(function(cat){var ls=regsW.filter(function(r){return r.cat===cat});if(!ls.length)return;var n=0;
-    o+='<div class="card"><h3>'+esc(cat)+' <span class="chip">'+ls.filter(function(r){return r.status==='activa'}).length+' echipe</span></h3><div class="list">'+ls.map(function(r){var ac=r.status==='activa';if(ac)n++;
+    o+='<div class="card" data-cc="r:'+esc(cat)+'"><h3>'+esc(cat)+' <span class="chip">'+ls.filter(function(r){return r.status==='activa'}).length+' echipe</span></h3><div class="list">'+ls.map(function(r){var ac=r.status==='activa';if(ac)n++;
       var ms=S.fr.filter(function(m){return m.st!=='anulat'&&(m.home===r.id||m.away===r.id)});
       return '<div class="item"><div class="nm">'+(ac?n+'. ':'')+esc(frName(r))+'<div class="small muted">'+esc(r.person||'')+(r.phone?' · '+esc(r.phone):'')+(r.email?' · '+esc(r.email):'')+'</div></div>'+
         '<div><div class="small">'+esc(availTxt(r))+' · '+(+r.max||1)+' meci'+((+r.max||1)>1?'uri':'')+'</div><div style="margin-top:4px">'+(r.status==='retrasa'?'<span class="chip bad">retrasă</span>':ms.length?'<span class="chip good">programată · '+ms.length+'</span>':(r.sched==='fara'?'<span class="chip warn">fără adversar</span>':'<span class="chip">neprogramată</span>'))+'</div></div>'+
@@ -569,7 +570,7 @@ function oFrProg(){var c=acfg(),week=frWeek(),ms=S.fr.filter(function(m){return 
   if(!ms.length)return '<div class="empty">Nu există meciuri programate în această săptămână. Generează programul din fila „Înscrieri și programare”.</div>';
   var o='';
   frCats().forEach(function(cat){var cm=ms.filter(function(m){return m.cat===cat});if(!cm.length)return;
-    o+='<div class="card"><div class="bar" style="justify-content:space-between;margin:0 0 8px"><h3>'+esc(cat)+'</h3><button class="btn ghost sm" data-act="fr-copy" data-cat="'+esc(cat)+'">Copiază programul (text)</button></div>'+cm.map(function(m){var can=m.st==='anulat';
+    o+='<div class="card" data-cc="a:'+esc(cat)+'"><div class="bar" style="justify-content:space-between;margin:0 0 8px"><h3>'+esc(cat)+'</h3><button class="btn ghost sm" data-act="fr-copy" data-cat="'+esc(cat)+'">Copiază programul (text)</button></div>'+cm.map(function(m){var can=m.st==='anulat';
       var days=DAYS.filter(function(d){return c.days[d].on||d===m.day});
       return '<div class="match frrow'+(m.st==='live'?' is-live':'')+'" data-fid="'+m.id+'"><div class="mmeta"><span class="time">'+esc(m.time)+'</span><span>'+DAYN[m.day]+' '+fmtDate(m.date)+'</span><span>Teren '+esc(m.field)+'</span>'+(m.st==='live'?'<span class="livetag">LIVE</span>':'')+(m.st==='fin'?'<span class="chip good">încheiat</span>':'')+(can?'<span class="chip bad">anulat</span>':'')+'</div>'+
       '<div class="mteams"><div class="tm">'+esc(m.homeName)+'</div><div class="ins"><input type="number" min="0" max="99" inputmode="numeric" data-f="hs" aria-label="Goluri gazde" value="'+(m.hs==null?'':m.hs)+'"'+(can?' disabled':'')+'><span>–</span><input type="number" min="0" max="99" inputmode="numeric" data-f="as" aria-label="Goluri oaspeți" value="'+(m.as==null?'':m.as)+'"'+(can?' disabled':'')+'></div><div class="tm right">'+esc(m.awayName)+'</div></div>'+
@@ -603,7 +604,7 @@ function render(force){
   if(!tabs.some(function(t){return t[0]===tab}))tab=tabs[0][0];
   o+='<nav class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="tab" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</nav>';
   o+=({organizator:vOrg,inscriere:vInscriere,amicale:vAmicale,live:vLive,regulament:vRegulament,login:vLogin}[tab])();
-  var sy=window.scrollY;$('#app').innerHTML=o;window.scrollTo(0,sy)}
+  var sy=window.scrollY;$('#app').innerHTML=o;foldCats();window.scrollTo(0,sy)}
 var rt;function sched(){clearTimeout(rt);rt=setTimeout(function(){render(false)},60)}
 document.addEventListener('focusout',function(){if(pendingRender)setTimeout(function(){if(pendingRender)render(false)},250)});
 
@@ -779,6 +780,11 @@ app.addEventListener('submit',function(e){e.preventDefault();var f=e.target.data
 window.addEventListener('hashchange',function(){var h=location.hash.replace('#','');if(['organizator','inscriere','amicale','live','regulament','login'].indexOf(h)>-1){tab=h;render(true)}});
 
 /* ---------- arbitri, stele pentru cluburi, review-uri ---------- */
+var openCats={};
+function foldCats(){var cs=document.querySelectorAll('#app [data-cc]');cs.forEach(function(card){var k=card.dataset.cc,d=document.createElement('details');d.className='catd';d.dataset.ok=k;
+  if(openCats[k]===undefined?cs.length<=2:openCats[k])d.open=true;
+  var sm=document.createElement('summary');sm.appendChild(card.firstElementChild);d.appendChild(sm);while(card.firstChild)d.appendChild(card.firstChild);card.replaceWith(d)})}
+document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.dataset&&d.dataset.ok)openCats[d.dataset.ok]=d.open},true);
 var sgDraft=null,sgFields=null;
 function grpOpts(sel){var o=cats().slice();for(var y=2022;y>=2008;y--)o.push('Născuți '+y);if(sel&&o.indexOf(sel)<0)o.unshift(sel);return o.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
 function syncSg(){if(tab!=='organizator'||otab!=='scoli')return;var gv=function(i){return ($('#'+i)||{}).value||''};sgFields={name:gv('sn'),city:gv('sc'),person:gv('sp'),email:gv('se'),phone:gv('st')};var rows=document.querySelectorAll('.sgrow');sgDraft=Array.prototype.map.call(rows,function(r){return{g:r.querySelector('.sg-g').value,coach:r.querySelector('.sg-c').value.trim(),phone:r.querySelector('.sg-p').value.trim()}})}
